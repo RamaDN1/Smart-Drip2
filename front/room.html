@@ -12,9 +12,11 @@
 <body>
     <header>
         <img src="images/logo.jpeg" width="150">
-        <span id="userGreeting" style="float: right; margin: 10px;"></span>
+        <span id="userGreeting" style="float: right ; margin: 10px; font-weight: bold;"></span>
     </header>
 
+ <!-- Main Content -->
+    <main class="main-content">
     <div class="RRoomm">
         <h2>Patient Room Management System</h2>
         <div id="loading">
@@ -31,8 +33,8 @@
         <span></span>
     </div>
 
-    <!-- القائمة الجانبية -->
-    <div class="side-menu" id="sideMenu">
+     <!-- القائمة الجانبية -->
+     <div class="side-menu" id="sideMenu">
         <a href="home.html">Home</a>
         <a href="creat_entry.html">Creat_Entry</a>
         <a href="room.html">Rooms</a>
@@ -195,28 +197,32 @@ function updateRoomsUI(rooms) {
 
         // عرض معلومات المريض
         function showPatientInfo(room) {
-            let infoDiv = document.getElementById("patient-info");
-            infoDiv.style.display = "block";
- 
-            if (!room.occupied) {
-                infoDiv.innerHTML = `
-                    <p style="color: green; font-weight: bold;">🚪 Room ${room.room_number} is available</p>
-                    <button onclick="reserveRoom(${room.id})">Book Room</button>
-                `;
-                return;
-            }
+  let infoDiv = document.getElementById("patient-info");
+  infoDiv.style.display = "block";
 
-            let patient = room.patient;
-            infoDiv.innerHTML = `
-                <p><strong>رقم الغرفة:</strong> ${room.room_number}</p>
-                <p><strong>اسم المريض:</strong> ${patient.name}</p>
-                <p><strong>العمر:</strong> ${patient.age}</p>
-                <p><strong>الطبيب:</strong> ${patient.doctor}</p>
-                <p><strong>فصيلة الدم:</strong> ${patient.blood_group}</p>
-                <p><strong>حالة المغذي:</strong> ${patient.drip_status}</p>
-                <button onclick="checkoutPatient(${room.id})">Check Out</button>
-            `;
-        }
+  if (!room.occupied) {
+    let html = `<p style="color: green; font-weight: bold;">🚪 Room ${room.room_number} is available</p>`;
+    if (userRole === "admin" || userRole === "doctor") {
+      html += `<button onclick="reserveRoom(${room.id})">Book Room</button>`;
+    } else {
+      html += `<p style="color: gray;">🚫 لا تملك صلاحية الحجز</p>`;
+    }
+    infoDiv.innerHTML = html;
+    return;
+  }
+
+  let patient = room.patient;
+  infoDiv.innerHTML = `
+    <p><strong>رقم الغرفة:</strong> ${room.room_number}</p>
+    <p><strong>اسم المريض:</strong> ${patient.name}</p>
+    <p><strong>العمر:</strong> ${patient.age}</p>
+    <p><strong>الطبيب:</strong> ${patient.doctor}</p>
+    <p><strong>فصيلة الدم:</strong> ${patient.blood_group}</p>
+    <p><strong>حالة المغذي:</strong> ${patient.drip_status}</p>
+    <button onclick="checkoutPatient(${room.id})">Check Out</button>
+  `;
+}
+
 
         // حجز غرفة
         function reserveRoom(roomId) {
@@ -253,6 +259,8 @@ function updateRoomsUI(rooms) {
   }
 }
 
+let userRole = null;
+
         // التحقق من تسجيل الدخول وعرض بيانات المستخدم
         function checkAuth() {
             const token = localStorage.getItem('authToken');
@@ -266,7 +274,8 @@ function updateRoomsUI(rooms) {
             
             try {
                 const user = JSON.parse(userData);
-                document.getElementById('userGreeting').textContent = `مرحباً، ${user.name}`;
+                userRole = user.role;
+                document.getElementById('userGreeting').textContent = `👤, ${user.name} (${user.role})`;
             } catch (e) {
                 console.error('Error parsing user data:', e);
             }

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartFlow Admin Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="logo">SmartFlow</div>
+      <ul class="sidebar-menu">
+        <li><a href="#" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt"></i> 🏠Dashboard</a></li>
+        <li><a href="#" onclick="showSection('patients', loadPatients)"><i class="fas fa-users"></i>👤 Patients</a></li>
+        <li><a href="#" onclick="showSection('rooms', loadRooms)"><i class="fas fa-hospital-room"></i> 🛏️Rooms</a></li>
+        <li><a href="#" onclick="showSection('valves', loadValves)"><i class="fas fa-cogs"></i>🔒 Valve Control</a></li>
+        <li><a href="#" onclick="showSection('appointments', loadAllAppointments)"><i class="fas fa-calendar-alt"></i> 📅Appointments</a></li>
+        <li><a href="#" onclick="showSection('feedback', loadFeedback)"><i class="fas fa-comments"></i> 💬Feedback</a></li>
+        <li><a href="#" onclick="showSection('users', loadUsers)"><i class="fas fa-user"></i> 📺Users</a></li>
+        <li><a href="#" onclick="showSection('settings')"><i class="fas fa-cogs"></i>⚙️ Settings</a></li>
+      </ul>
+      <button class="add-entry-btn" onclick="showAddEntryModal()"><i class="fas fa-plus-circle"></i>+ Add Entry</button>
+    </aside>
+    
+    <main class="main-content">
+      <h1>Dashboard Overview</h1>
+      <div class="stats-cards">
+        <div class="card">
+          <h3>Total Patients</h3>
+          <div class="number" id="totalPatients">0</div>
+        </div>
+        <div class="card">
+          <h3>Occupied Rooms</h3>
+          <div class="number" id="occupiedRooms">0</div>
+        </div>
+        <div class="card">
+          <h3>Open Valves</h3>
+          <div class="number" id="openValves">0</div>
+        </div>
+        <div class="card">
+          <h3>Today's Reviews</h3>
+          <div class="number" id="todayReviews">0</div>
+        </div>
+      </div>
+
+      <div class="table-section">
+        <h2>Recent Appointments</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="appointmentsTable">
+            <tr><td colspan="5">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="patientsSection" class="dynamic-section" style="display: none;">
+        <h2>Registered Patients</h2>
+        <div class="table-section">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Phone</th>
+                <th>Blood Group</th>
+                <th>Doctor</th>
+                <th>Admission</th>
+              </tr>
+            </thead>
+            <tbody id="patientsTable">
+              <tr><td colspan="6">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="roomsSection" class="dynamic-section" style="display: none;">
+        <h2>Room Status</h2>
+        <div class="table-section">
+          <table>
+            <thead>
+              <tr>
+                <th>Room Number</th>
+                <th>Floor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="roomsTable">
+              <tr><td colspan="3">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="valvesSection" class="dynamic-section" style="display: none;">
+        <h2>Valves Status</h2>
+        <div class="table-section">
+          <table>
+            <thead>
+              <tr>
+                <th>Room Number</th>
+                <th>Status</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+            <tbody id="valvesTable">
+              <tr><td colspan="3">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="appointmentsSection" class="dynamic-section" style="display: none;">
+        <h2>All Appointments</h2>
+        <div class="table-section">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="appointmentsList">
+              <tr><td colspan="5">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="feedbackSection" class="dynamic-section" style="display: none;">
+        <h2>Feedback</h2>
+        <div class="table-section">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Feedback</th>
+                <th>Rating</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="feedbackTable">
+              <tr><td colspan="4">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="usersSection" class="dynamic-section" style="display: none;">
+        <h2>All Users</h2>
+        <div class="table-section">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable">
+              <tr><td colspan="3">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function showSection(section, loadFunction) {
+      const sections = document.querySelectorAll(".dynamic-section");
+      sections.forEach(sec => sec.style.display = "none");
+      const target = document.getElementById(`${section}Section`);
+      if (target) {
+        target.style.display = "block";
+        if (typeof loadFunction === "function") loadFunction();
+      }
+    }
+
+    async function loadPatients() {
+      const res = await fetch("/api/patients", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
+      });
+      const data = await res.json();
+      const table = document.getElementById("patientsTable");
+      if (!Array.isArray(data.patients)) {
+        table.innerHTML = `<tr><td colspan='6'>Invalid data</td></tr>`;
+        return;
+      }
+      table.innerHTML = "";
+      data.patients.forEach(p => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${p.name}</td>
+          <td>${p.age}</td>
+          <td>${p.phone || '-'}</td>
+          <td>${p.blood_group}</td>
+          <td>${p.doctor_name}</td>
+          <td>${p.admission_date}</td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    async function loadRooms() {
+      const res = await fetch("/api/rooms", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
+      });
+      const data = await res.json();
+      const table = document.getElementById("roomsTable");
+      if (!Array.isArray(data.rooms)) {
+        table.innerHTML = `<tr><td colspan='3'>Invalid data</td></tr>`;
+        return;
+      }
+      table.innerHTML = "";
+      data.rooms.forEach(r => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${r.room_number}</td>
+          <td>${r.floor}</td>
+          <td>${r.status || 'Occupied'}</td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    async function loadValves() {
+      const res = await fetch("/api/valves", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
+      });
+      const data = await res.json();
+      const table = document.getElementById("valvesTable");
+      if (!Array.isArray(data.valves)) {
+        table.innerHTML = `<tr><td colspan='3'>Invalid data</td></tr>`;
+        return;
+      }
+      table.innerHTML = "";
+      data.valves.forEach(v => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${v.room_number}</td>
+          <td>${v.status}</td>
+          <td>${v.last_updated || 'N/A'}</td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    // دالة لتحميل المواعيد الحديثة (آخر 7 مواعيد)
+async function loadRecentAppointments() {
+  try {
+    const res = await fetch("/api/reviews/recent", {
+      headers: { 
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const data = await res.json();
+    const table = document.getElementById("appointmentsTable");
+    
+    if (!Array.isArray(data.reviews)) {
+      table.innerHTML = "<tr><td colspan='5'>No recent appointments</td></tr>";
+      return;
+    }
+
+    table.innerHTML = "";
+    data.reviews.forEach(r => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${r.patient_name || 'N/A'}</td>
+        <td>${r.doctor_name || 'N/A'}</td>
+        <td>${new Date(r.review_date).toLocaleDateString() || 'N/A'}</td>
+        <td>${r.review_time || 'N/A'}</td>
+        <td>${r.doctor_notes || 'No notes'}</td>
+      `;
+      table.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Error loading recent appointments:", err);
+    document.getElementById("appointmentsTable").innerHTML = 
+      `<tr><td colspan='5'>Error loading recent appointments</td></tr>`;
+  }
+}
+
+// دالة لتحميل جميع المواعيد (موجودة لديك بالفعل)
+async function loadAllAppointments() {
+  try {
+    const res = await fetch("/api/reviews/all", {
+      headers: { 
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const data = await res.json();
+    const table = document.getElementById("appointmentsList");
+    
+    if (!Array.isArray(data.appointments)) {
+      table.innerHTML = "<tr><td colspan='5'>No appointments found</td></tr>";
+      return;
+    }
+
+    table.innerHTML = "";
+    data.appointments.forEach(a => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${a.patient_name || 'N/A'}</td>
+        <td>${a.doctor_name || 'N/A'}</td>
+        <td>${new Date(a.review_date).toLocaleDateString() || 'N/A'}</td>
+        <td>${a.review_time || 'N/A'}</td>
+        <td>${a.doctor_notes || 'No notes'}</td>
+      `;
+      table.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Error loading all appointments:", err);
+    document.getElementById("appointmentsList").innerHTML = 
+      `<tr><td colspan='5'>Error loading data</td></tr>`;
+  }
+}
+
+async function loadFeedback() {
+  const res = await fetch("/api/feedback", {
+    headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
+  });
+  const data = await res.json();
+
+  const table = document.getElementById("feedbackTable");
+
+  if (!Array.isArray(data.feedback)) {
+    table.innerHTML = `<tr><td colspan="3">بيانات غير صالحة</td></tr>`;
+    return;
+  }
+
+  table.innerHTML = "";
+  data.feedback.forEach(f => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${f.user_name}</td>
+      <td>${f.review}</td>
+      <td>${f.rating}</td> <!-- هنا يظهر التقييم -->
+      <td>${f.created_at}</td>
+    `;
+    table.appendChild(row);
+  });
+}
+
+async function loadUsers() {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      throw new Error("Not authenticated");
+    }
+
+    const res = await fetch("/api/users", {
+      headers: { 
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    console.log("API Response:", data); // لأغراض التصحيح
+
+    const users = data.users || []; // تأقلم مع الهيكل الجديد
+    const table = document.getElementById("usersTable");
+    table.innerHTML = "";
+
+    if (users.length === 0) {
+      table.innerHTML = `<tr><td colspan='3'>No users found</td></tr>`;
+      return;
+    }
+
+    users.forEach(u => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${u.username || u.name || '-'}</td>
+        <td>${u.email || '-'}</td>
+        <td>${u.role || '-'}</td>
+      `;
+      table.appendChild(row);
+    });
+
+  } catch (error) {
+    console.error("Error loading users:", error);
+    document.getElementById("usersTable").innerHTML = `
+      <tr><td colspan='3'>Error: ${error.message}</td></tr>
+    `;
+  }
+}
+    window.onload = () => {
+      showSection('dashboard');
+      loadRecentAppointments();
+    };
+  </script>
+</body>
+</html>
+

@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Flow - Review</title>
     <link rel="stylesheet" href="reviwe.css">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
     <header>
         <img src="images/logo.jpeg" width="150">
+        <div id="userGreeting" style="position: absolute; right: 150px; font-weight: bold; color: #9147d5;"></div>
     </header>
-    
+
     <!-- زر القائمة -->
     <div class="toggle-menu-btn" id="menuButton" onclick="toggleMenu()">
         <span></span>
@@ -27,17 +29,18 @@
         <a href="Features.html">Features</a>
         <a href="reviwe.html">Review</a>
         <a href="help.html">Help</a>
+        <a href="#" id="logoutBtn">Logout</a>
     </div>
 
-    <!-- الغطاء -->
     <div class="menu-overlay" id="overlay" onclick="closeMenu()"></div>
 
+    <main class="main-content">
     <section class="bodyy">
         <div class="review-container">
             <div class="review-box">
                 <h2>We Value Your Feedback 😊</h2>
                 <p>Your opinion helps us improve the infusion drip control system. Please rate and share your thoughts.</p>
-                
+
                 <div class="rating">
                     <input type="radio" id="star5" name="rating" value="5">
                     <label for="star5">★</label>
@@ -50,17 +53,17 @@
                     <input type="radio" id="star1" name="rating" value="1">
                     <label for="star1">★</label>
                 </div>
-                
+
                 <textarea id="review-text" placeholder="How can we improve our service?"></textarea>
-                
                 <button class="submit-btn" onclick="submitReview()">Submit Feedback</button>
-                
+
                 <div id="thankYou" class="thank-you">
                     Thank you for your valuable feedback! We appreciate your time.
                 </div>
             </div>
         </div>
     </section>
+</main>
 
     <footer>
         <div class="footer-nav">
@@ -72,7 +75,21 @@
     </footer>
 
     <script>
-        // وظيفة القائمة الجانبية
+        // التحقق من تسجيل الدخول وعرض الاسم والدور
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('user');
+
+            if (!token || !userData) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const user = JSON.parse(userData);
+            document.getElementById('userGreeting').textContent = `👤 ${user.name} (${user.role})`;
+        });
+
+        // القائمة الجانبية
         const menu = document.getElementById("sideMenu");
         const button = document.getElementById("menuButton");
         const overlay = document.getElementById("overlay");
@@ -89,34 +106,38 @@
             overlay.classList.remove("active");
         }
 
-        // وظيفة إرسال المراجعة
+        // تسجيل الخروج
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        });
+
+        // إرسال المراجعة
         async function submitReview() {
             const reviewText = document.getElementById('review-text').value;
             const rating = document.querySelector('input[name="rating"]:checked');
-            
+
             if (!rating) {
                 alert("Please select a rating before submitting.");
                 return;
             }
-            
+
             if (reviewText.trim() === "") {
                 alert("Please enter your feedback before submitting.");
                 return;
             }
-            
+
             document.getElementById('thankYou').style.display = 'block';
             document.getElementById('review-text').value = "";
-            
-            // إعادة تعيين التقييم
+
             const stars = document.querySelectorAll('input[name="rating"]');
             stars.forEach(star => star.checked = false);
-            
-            // إخفاء رسالة الشكر بعد 3 ثواني
+
             setTimeout(() => {
                 document.getElementById('thankYou').style.display = 'none';
             }, 3000);
 
-            // إرسال المراجعة إلى الخادم
             try {
                 const response = await fetch('/api/feedback', {
                     method: 'POST',
@@ -131,9 +152,7 @@
                 });
 
                 const data = await response.json();
-                if (data.success) {
-                    console.log("Feedback submitted:", data);
-                } else {
+                if (!data.success) {
                     alert("Failed to submit feedback. Please try again.");
                 }
             } catch (error) {
@@ -144,3 +163,4 @@
     </script>
 </body>
 </html>
+

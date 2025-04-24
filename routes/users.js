@@ -111,4 +111,25 @@ router.delete('/:id', authenticateToken, checkRole(['admin']), async (req, res) 
   }
 });
 
+// جلب كل المستخدمين (للأدمن فقط)
+router.get("/", authenticateToken, checkRole(['admin']), async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, name AS username, email, role, created_at 
+      FROM users
+    `);
+    
+    res.json({ 
+      success: true,
+      users: result.rows 
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ 
+      success: false,
+      error: "Server error" 
+    });
+  }
+});
+
 module.exports = router;

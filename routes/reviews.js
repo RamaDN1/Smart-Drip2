@@ -114,28 +114,51 @@ router.post('/', authenticateToken,  checkRole(['doctor', 'admin', 'receptionist
 });
 
 // ✅ الحصول على جميع المواعيد مع سبب الدخول
-router.get('/', authenticateToken, async (req, res) => {
+ // للحصول على جميع المواعيد (بدون فلترة)
+router.get('/all', authenticateToken, checkRole(['admin']), async (req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT r.*, p.name as patient_name, p.admission_reason
-       FROM reviews r
-       JOIN patients p ON r.patient_id = p.id
-       WHERE r.user_id = $1
-       ORDER BY r.review_date DESC, r.review_time DESC`,
-      [req.user.user_id]
-    );
-
-    res.json({
+    const result = await pool.query(`
+      SELECT r.*, p.name as patient_name, u.name as doctor_name
+      FROM reviews r
+      JOIN patients p ON r.patient_id = p.id
+      JOIN users u ON r.user_id = u.id
+      ORDER BY r.review_date DESC, r.review_time DESC
+    `);
+    
+    res.json({ 
       success: true,
-      data: result.rows
+      appointments: result.rows 
     });
-
   } catch (err) {
-    console.error('فشل في جلب المواعيد:', err);
-    res.status(500).json({
+    console.error('Error fetching all appointments:', err);
+    res.status(500).json({ 
       success: false,
-      error: 'فشل في جلب المواعيد',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error: 'Failed to fetch appointments' 
+    });
+  }
+});
+
+// للحصول على المواعيد الحديثة (آخر 7)
+router.get('/recent', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT r.*, p.name as patient_name, u.name as doctor_name
+      FROM reviews r
+      JOIN patients p ON r.patient_id = p.id
+      JOIN users u ON r.user_id = u.id
+      ORDER BY r.review_date DESC, r.review_time DESC
+      LIMIT 7
+    `);
+    
+    res.json({ 
+      success: true,
+      reviews: result.rows 
+    });
+  } catch (err) {
+    console.error('Error fetching recent appointments:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch recent appointments' 
     });
   }
 });

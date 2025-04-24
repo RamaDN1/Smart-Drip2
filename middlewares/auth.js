@@ -37,11 +37,11 @@ const authenticateToken = (req, res, next) => {
 };
 
 // التحقق من الصلاحيات
-const checkRole = (roles) => {
+const checkRole = (allowedRoles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Access denied, insufficient role' });
-    }
+      if (!allowedRoles.includes(req.user.role)) {
+          return res.status(403).json({ error: 'Access denied' });
+      }
     next();
   };
 };

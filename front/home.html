@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <title>My Website</title>
     <link rel="stylesheet" href="style.css">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -16,10 +15,12 @@
             <a href="Features.html">Features</a>
             <a href="reviwe.html">Reviews</a>
             <a href="help.html">Help</a>
+            <a href="Admin.html">Admin Dashboard</a>
             <a href="#" id="logoutBtn">Logout</a>
         </nav>
+        <div id="userGreeting" style="position: absolute; right: 200px; font-weight: bold; color: #8d6fd2;"></div>
     </header>
-    
+
     <section class="main">
         <div>
             <h1>Smart Drip Iv Control<br></h1>
@@ -27,7 +28,6 @@
                 system that uses weight sensors to precisely control fluid flow and prevent <br>
                 overflow with intelligent valve control.</h3>
             <br><br>
-        
             <div class="menu-buttonss">
                 <button class="button green" onclick="goTo('creat_entry.html')">➕<br><br>Create Entry</button>
                 <button class="button blue" onclick="goTo('room.html')">🏥<br><br>Rooms</button>
@@ -37,80 +37,24 @@
         </div>
     </section>
 
-
     <section>
-      <div class="feature-box">
-        <div class="feature-image">
-          <img src="images/drip2.jpeg" alt="Smart Drip System">
+        <div class="feature-box">
+            <div class="feature-image">
+                <img src="images/drip2.jpeg" alt="Smart Drip System">
+            </div>
+            <div class="feature-text">
+                <h2> ✨Connect Smarter.✨</h2>
+                <h2> ✨Care Safer.✨</h2>
+                <p>Gives you automatic safety with our advanced IV control system</p>
+                <ul class="benefits-list">
+                    <li>New e-system for IV control called Smart Drip using IoT technology for real-time monitoring</li>
+                    <li>Automatic valve control based on sensor data analysis</li>
+                    <li>Reduces health risks by preventing air embolism and ensuring timely solution replacement</li>
+                </ul>
+            </div>
         </div>
-        
-        <div class="feature-text">
-          <h2> ✨Connect Smarter.✨</h2>
-          <h2> ✨Care Safer.✨</h2>
-          <p>Gives you automatic safety with our advanced IV control system</p>
-          
-          <ul class="benefits-list">
-            <li>New e-system for IV control called Smart Drip using IoT technology for real-time monitoring</li>
-            <li>Automatic valve control based on sensor data analysis</li>
-            <li>Reduces health risks by preventing air embolism and ensuring timely solution replacement</li>
-          </ul>
-        </div>
-      </div>
     </section>
-    <br>
-    <br>
-    <br>
 
-
-    <script>
-        // التحقق من تسجيل الدخول عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('authToken');
-            if (!token) {
-                window.location.href = '/login.html';
-                return;
-            }
-
-            // عرض اسم المستخدم إذا كان متوفراً
-            const userData = localStorage.getItem('user');
-            if (userData) {
-                const user = JSON.parse(userData);
-                console.log(`مرحباً ${user.name}`);
-            }
-        });
-
-        // وظيفة تسجيل الخروج
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            window.location.href = '/login.html';
-        });
-
-        function goTo(page) {
-            // التحقق من وجود التوكن قبل الانتقال
-            const token = localStorage.getItem('authToken');
-            if (!token) {
-                window.location.href = '/login.html';
-                return;
-            }
-            window.location.href = page;
-        }
-    
-        function toggleMenu() {
-            const nav = document.getElementById("navMenu");
-            nav.classList.toggle("show");
-        }
-    
-        // إغلاق القائمة عند النقر خارجها
-        window.addEventListener("click", function(e) {
-            const nav = document.getElementById("navMenu");
-            const menuIcon = document.querySelector(".menu-icon");
-            if (!nav.contains(e.target) && !menuIcon.contains(e.target)) {
-                nav.classList.remove("show");
-            }
-        });
-    </script>
-    
     <footer>
         <div class="footer-content">
             <p>Smart Drip IV Control. All Rights Reserved.</p><br>
@@ -119,5 +63,54 @@
             <p>📞 Phone: +123 456 7890</p>
         </div>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('user');
+
+            if (!token || !userData) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const user = JSON.parse(userData);
+            document.getElementById('userGreeting').textContent = `👤 ${user.name} (${user.role})`;
+
+            // إظهار وإخفاء عناصر حسب الدور
+            if (user.role !== 'admin') {
+                const adminLink = document.querySelector("a[href='Admin.html']");
+                if (adminLink) adminLink.style.display = 'none';
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        });
+
+        function goTo(page) {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+            window.location.href = page;
+        }
+
+        function toggleMenu() {
+            const nav = document.getElementById("navMenu");
+            nav.classList.toggle("show");
+        }
+
+        window.addEventListener("click", function(e) {
+            const nav = document.getElementById("navMenu");
+            const menuIcon = document.querySelector(".menu-icon");
+            if (!nav.contains(e.target) && !menuIcon.contains(e.target)) {
+                nav.classList.remove("show");
+            }
+        });
+    </script>
 </body>
 </html>

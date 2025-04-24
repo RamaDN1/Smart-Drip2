@@ -31,6 +31,9 @@ const refreshTokenIfNeeded = async (req, res, next) => {
 // 🔹 الحصول على جميع المرضى مع مراجعاتهم
 router.get('/patients-with-reviews', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
   try {
+    const role = req.user.role;
+    const userId = req.user.user_id;
+
     const result = await pool.query(`
       SELECT 
         p.id,
@@ -51,9 +54,9 @@ router.get('/patients-with-reviews', authenticateToken, checkRole(['admin', 'doc
         TO_CHAR(r.review_time, 'HH24:MI') as formatted_review_time
       FROM patients p
       LEFT JOIN reviews r ON p.id = r.patient_id
-      WHERE p.user_id = $1
+      ${role === 'admin' ? '' : 'WHERE p.user_id = $1'}
       ORDER BY p.name
-    `, [req.user.user_id]);
+    `, role === 'admin' ? [] : [userId]);
 
     res.json({
       success: true,
@@ -69,11 +72,14 @@ router.get('/patients-with-reviews', authenticateToken, checkRole(['admin', 'doc
   }
 });
 
+
 // 🔹 الحصول على جميع المرضى (بحث + فلترة)
 router.get('/', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
   try {
     const { search, room_id } = req.query;
-    
+    const role = req.user.role;
+    const userId = req.user.user_id;
+
     let query = `
       SELECT 
         p.id,
@@ -90,21 +96,29 @@ router.get('/', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), asyn
         r.floor
       FROM patients p
       LEFT JOIN rooms r ON p.room_id = r.id
-      WHERE p.user_id = $1
     `;
 
-    const params = [req.user.user_id];
-    let paramIndex = 2;
+    const params = [];
+    let conditions = [];
+
+    // فقط نفلتر حسب user_id إذا لم يكن المستخدم أدمن
+    if (role !== 'admin') {
+      conditions.push(`p.user_id = $${params.length + 1}`);
+      params.push(userId);
+    }
 
     if (search) {
-      query += ` AND (p.name ILIKE $${paramIndex} OR p.doctor_name ILIKE $${paramIndex})`;
+      conditions.push(`(p.name ILIKE $${params.length + 1} OR p.doctor_name ILIKE $${params.length + 1})`);
       params.push(`%${search}%`);
-      paramIndex++;
     }
 
     if (room_id) {
-      query += ` AND p.room_id = $${paramIndex}`;
+      conditions.push(`p.room_id = $${params.length + 1}`);
       params.push(room_id);
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ` + conditions.join(' AND ');
     }
 
     query += ' ORDER BY p.name';
@@ -122,6 +136,7 @@ router.get('/', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), asyn
     });
   }
 });
+
 
 // 🔹 الحصول على مريض محدد
 router.get('/:id', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {

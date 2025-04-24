@@ -147,6 +147,42 @@
           alert('حدث خطأ أثناء تحديث الملاحظات');
       }
     }
+
+    async function loadReviewHistory(patientId) {
+  try {
+    const res = await fetch(`/api/reviews/patient/${patientId}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    const data = await res.json();
+
+    const tbody = document.querySelector("#reviewHistoryTable tbody");
+    tbody.innerHTML = "";
+
+    if (!data.history || data.history.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='5'>لا توجد مراجعات مسجلة</td></tr>";
+      return;
+    }
+
+    data.history.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${formatDate(row.review_date)}</td>
+        <td>${formatTime(row.review_time)}</td>
+        <td><textarea class="doctor-notes" id="doctorNotes-${row.id}" placeholder="ملاحظات الطبيب">${row.doctor_notes || ''}</textarea></td>
+        <td>${row.admission_reason || '—'}</td>
+        <td><button onclick="updateNotes('${row.id}')">تحديث الملاحظات</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Error loading review history:", err);
+    document.querySelector("#reviewHistoryTable tbody").innerHTML =
+      "<tr><td colspan='5'>⚠️ فشل في تحميل البيانات</td></tr>";
+  }
+}
+
   </script>
 </body>
 </html>

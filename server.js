@@ -13,10 +13,10 @@ const app = express();
 
 // إعداد CORS
 app.use(cors({
-    origin: 'http://localhost:3000', 
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+  origin: ['http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json());
@@ -58,8 +58,8 @@ app.post("/api/login", async (req, res) => {
       const { email, password } = req.body;
 
       const user = await pool.query(
-          "SELECT id, name, email, password FROM users WHERE email = $1", 
-          [email]
+        "SELECT id, name, email, password, role FROM users WHERE email = $1", 
+        [email]
       );
 
       if (user.rows.length === 0) {
@@ -96,7 +96,8 @@ app.post("/api/login", async (req, res) => {
         user: {
             id: user.rows[0].id,
             name: user.rows[0].name,
-            email: user.rows[0].email
+            email: user.rows[0].email,
+            role: user.rows[0].role
         },
         redirectTo: '/home.html'
      });
@@ -168,4 +169,3 @@ app.post("/api/register", async (req, res) => {
   
 
 module.exports = app;
-

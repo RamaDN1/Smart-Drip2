@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us</title>
     <link rel="stylesheet" href="help.css">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
     <!-- Header with Hamburger Menu -->
@@ -16,6 +17,23 @@
             <span></span>
         </div>
     </header>
+
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+          <div class="logo">SmartFlow</div>
+          <ul class="sidebar-menu">
+            <li><a href="home.html"><i class='bx bx-home'></i> Home</a></li>
+            <li><a href="creat_entry.html"><i class='bx bx-plus'></i> Create Entry</a></li>
+            <li><a href="room.html"><i class='bx bx-bed'></i> Rooms</a></li>
+            <li><a href="valve&time.html"><i class='bx bx-cog'></i> Valve & Time</a></li>
+            <li><a href="Features.html"><i class='bx bx-star'></i> Features</a></li>
+            <li><a href="reviwe.html"><i class='bx bx-message'></i> Review</a></li>
+            <li class="active"><i class='bx bx-help-circle'></i> Help</li>
+            <li><a href="#" id="logoutBtn"><i class='bx bx-log-out'></i> Logout</a></li>
+          </ul>
+        </aside>
     
     <!-- زر القائمة -->
   <div class="toggle-menu-btn" id="menuButton" onclick="toggleMenu()">
@@ -55,6 +73,8 @@
     <!-- Menu Overlay -->
     <div class="menu-overlay" id="menuOverlay"></div>
     
+     <!-- Main Content -->
+     <main class="main-content">
     <!-- Main Content -->
     <div class="container">
         <h1>Contact Us</h1>
@@ -104,6 +124,8 @@
             </div>
         </form>
     </div>
+</main>
+</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

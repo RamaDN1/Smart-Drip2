@@ -41,4 +41,28 @@ router.post('/',
         }
     });
 
+    // API لجلب الفيدباك من قاعدة البيانات
+    router.get('/', authenticateToken, async (req, res) => {
+        try {
+          const result = await pool.query(
+            `SELECT f.*, u.name as user_name
+             FROM feedbacks f
+             JOIN users u ON f.user_id = u.id
+             ORDER BY f.created_at DESC`
+          );
+      
+          res.json({
+            success: true,
+            feedback: result.rows
+          });
+        } catch (err) {
+          console.error('Error fetching feedback:', err);
+          res.status(500).json({
+            success: false,
+            error: 'فشل في جلب بيانات الفيدباك',
+            details: process.env.NODE_ENV === 'development' ? err.message : undefined
+          });
+        }
+      });
+
 module.exports = router;
