@@ -272,4 +272,30 @@ router.put('/:id/update-time', authenticateToken, checkRole(['doctor', 'admin', 
     }
   });
 
+  // 🔢 جلب عدد مراجعات اليوم فقط
+router.get('/today', authenticateToken, async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const result = await pool.query(
+      `SELECT r.*, p.name as patient_name, u.name as doctor_name
+       FROM reviews r
+       JOIN patients p ON r.patient_id = p.id
+       JOIN users u ON r.user_id = u.id
+       WHERE r.review_date = $1`,
+      [today]
+    );
+
+    res.json({ 
+      success: true,
+      reviews: result.rows 
+    });
+  } catch (err) {
+    console.error('Error fetching today reviews:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch today reviews' 
+    });
+  }
+});
+
 module.exports = router;

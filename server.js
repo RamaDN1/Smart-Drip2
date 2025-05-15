@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const { authenticateToken, checkRole } = require('./middlewares/auth');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 process.env.JWT_SECRET = '5ddf4a564f24e49de2ee20c9b55964a967c4bdaeeb43359cd6857e83e9fadfe7';
+const axios = require('axios');
 
 const app = express();
 
@@ -146,7 +147,51 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+// تغيير كلمة المرور باستخدام الإيميل
+app.post("/api/reset-password", async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
 
+    // التحقق من إدخال البريد الإلكتروني وكلمة المرور الجديدة
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: "يرجى إدخال البريد الإلكتروني وكلمة المرور الجديدة" });
+    }
+
+    // التحقق من وجود المستخدم
+    const user = await pool.query(
+      "SELECT * FROM users WHERE email = $1", 
+      [email]
+    );
+
+    if (user.rows.length === 0) {
+      return res.status(404).json({ message: "لم يتم العثور على مستخدم بهذا البريد الإلكتروني" });
+    }
+
+    // التحقق من قوة كلمة المرور (يمكنك إضافة تحقق من قواعد خاصة لكلمة المرور)
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "كلمة المرور يجب أن تكون على الأقل 6 أحرف" });
+    }
+
+    // تشفير كلمة المرور الجديدة
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // تحديث كلمة المرور في قاعدة البيانات
+    const result = await pool.query(
+      "UPDATE users SET password = $1 WHERE email = $2 RETURNING id",
+      [hashedPassword, email]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "لم يتم العثور على مستخدم بهذا البريد الإلكتروني" });
+    }
+
+    // إعادة الاستجابة الناجحة
+    res.json({ message: "تم تحديث كلمة المرور بنجاح" });
+  } catch (err) {
+    console.error("خطأ في reset-password:", err);
+    res.status(500).json({ message: "حدث خطأ أثناء تحديث كلمة المرور" });
+  }
+});
   
   // إعادة توجيه أي طلب غير موجود
   app.get("*", (req, res) => {
@@ -166,6 +211,57 @@ app.post("/api/register", async (req, res) => {
           console.log(`🚀 Server running on port: http://localhost:${PORT}`);
       });
   }
-  
 
+  setInterval(async () => {
+    try {
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
+  
+      const result = await pool.query(`
+        SELECT room_id, start_time, end_time FROM valve_schedules
+        WHERE is_active = true
+      `);
+  
+      for (const row of result.rows) {
+        const start = row.start_time.substring(0, 5);
+        const end = row.end_time.substring(0, 5);
+        const roomId = row.room_id;
+  
+        // ✅ فتح الصمام إذا الوقت الحالي بين start و end
+        if (currentTime >= start && currentTime < end) {
+          console.log(`🔓 فتح الصمام للغرفة ${roomId}`);
+          await axios.get('http://192.168.14.109/api/open-valve');
+  
+          await pool.query(
+            `UPDATE valve_status SET status = 'open', updated_at = CURRENT_TIMESTAMP WHERE room_id = $1`,
+            [roomId]
+          );
+  
+          await pool.query(
+            `INSERT INTO valve_control_logs (room_id, action, performed_by) VALUES ($1, 'opened', 'Scheduler')`,
+            [roomId]
+          );
+        }
+  
+        // ✅ إغلاق الصمام عند نهاية الفترة
+        if (currentTime === end) {
+          console.log(`🔒 إغلاق الصمام للغرفة ${roomId}`);
+          await axios.get('http://192.168.14.109/api/close-valve');
+  
+          await pool.query(
+            `UPDATE valve_status SET status = 'closed', updated_at = CURRENT_TIMESTAMP WHERE room_id = $1`,
+            [roomId]
+          );
+  
+          await pool.query(
+            `INSERT INTO valve_control_logs (room_id, action, performed_by) VALUES ($1, 'closed', 'Scheduler')`,
+            [roomId]
+          );
+        }
+      }
+    } catch (err) {
+      console.error("❌ Scheduler Error:", err.message);
+    }
+  }, 60000); // كل 60 ثانية
+  
 module.exports = app;

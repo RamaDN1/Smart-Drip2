@@ -235,12 +235,41 @@ h1 {
 }
 
 .room-status .room-box {
-  padding: 10px 15px;
-  border-radius: 8px;
-  color: white;
+  padding: 15px;
+  border-radius: 12px;
   font-weight: bold;
   min-width: 120px;
   text-align: center;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.room-box:hover {
+  transform: scale(1.05);
+}
+
+/* ✅ ألوان الحالات */
+.room-open {
+  background-color: #e6f9ec;
+  color: #4add52;
+  border: 2px solid #28a745;
+}
+
+.room-closed {
+  background-color: #fdeaea;
+  color: #af1e1e;
+  border: 2px solid #dc3545;
+}
+
+/* ✅ أيقونة حالة */
+.room-box::before {
+  content: attr(data-icon);
+  font-size: 24px;
+  margin-bottom: 6px;
 }
 
 .room-open {

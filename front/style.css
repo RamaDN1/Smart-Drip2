@@ -800,3 +800,25 @@ header img {
           padding: 30px 15px;
         }
       }
+      .alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        padding: 15px 20px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: #fff;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      .alert-success { background-color: #28a745; }
+      .alert-error { background-color: #dc3545; }
+      .alert .alert-close { margin-left: auto; cursor: pointer; }
+      .fade-out { opacity: 0; transition: opacity 0.3s ease-in-out; }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }

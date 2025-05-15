@@ -1,210 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="style.css">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'/>
+ 
 </head>
 <body>
-    <section class="ll">
-        <div class="container" id="container">
-            <div class="form-container sign-up">
-                <form id="registerForm">
-                    <h1>Create Account</h1>
-                    <input type="text" name="name" placeholder="Name" required>
-                    <input type="email" name="email" placeholder="Email" required>
-                    <input type="password" name="password" placeholder="Password" required>
-                    <span>or use your email for registration</span>
-                    <div class="social-icons">
-                        <a href="#" class="icon"><i class='bx bxl-facebook'></i></a>
-                        <a href="#" class="icon"><i class='bx bxl-google'></i></a>
-                        <a href="#" class="icon"><i class='bx bxl-github'></i></a>
-                        <a href="#" class="icon"><i class='bx bxl-linkedin'></i></a>
-                    </div>
-                    <button type="submit">Sign Up</button>
-                </form>
-            </div>
-            <div class="form-container sign-in">
-                <form>
-                    <h1>Sign In</h1>
-                    <input type="email" name="email" placeholder="Email" required>
-                    <input type="password" name="password" placeholder="Password" required>
-                    <a href="#">Forget Your Password?</a>
-                    <span>or use your email and password</span>
-                    <div class="social-icons">
-                        <a href="#" class="icon"><i class='bx bxl-facebook'></i></a>
-                        <a href="#" class="icon"><i class='bx bxl-google'></i></a>
-                        <a href="#" class="icon"><i class='bx bxl-github'></i></a>
-                        <a href="#" class="icon"><i class='bx bxl-linkedin'></i></a>
-                    </div>
-                    <button type="submit">Sign In</button>
-                </form>
-            </div>
-            <div class="toggle-container">
-                <div class="toggle">
-                    <div class="toggle-panel toggle-left">
-                        <h1>Welcome Back!</h1>
-                        <p>Enter your personal details to use all site features</p>
-                        <button class="hidden" id="login">Sign In</button>
-                    </div>
-                    <div class="toggle-panel toggle-right">
-                        <h1>Hello, Friend!</h1>
-                        <p>Register with your personal details to use all site features</p>
-                        <button class="hidden" id="register">Sign Up</button>
-                    </div>
-                </div>
-            </div>
+<section class="ll">
+  <div class="container" id="container">
+    <div class="form-container sign-up">
+      <form id="registerForm">
+        <h1>Create Account</h1>
+        <input type="text" name="name" placeholder="Name" required />
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <span>or use your email for registration</span>
+        <div class="social-icons">
+          <a href="#" class="icon"><i class='bx bxl-facebook'></i></a>
+          <a href="#" class="icon"><i class='bx bxl-google'></i></a>
+          <a href="#" class="icon"><i class='bx bxl-github'></i></a>
+          <a href="#" class="icon"><i class='bx bxl-linkedin'></i></a>
         </div>
+        <button type="submit">Sign Up</button>
+      </form>
+    </div>
 
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const container = document.getElementById('container');
-                const registerBtn = document.getElementById('register');
-                const loginBtn = document.getElementById('login');
+    <div class="form-container sign-in">
+      <form>
+        <h1 id="formTitle">Sign In</h1>
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <input type="password" name="newPassword" placeholder="New Password" style="display: none;" />
+        <input type="password" name="confirmPassword" placeholder="Confirm Password" style="display: none;" />
+        <a href="#" id="forgotPasswordBtn">Forget Your Password?</a>
+        <span>or use your email and password</span>
+        <div class="social-icons">
+          <a href="#" class="icon"><i class='bx bxl-facebook'></i></a>
+          <a href="#" class="icon"><i class='bx bxl-google'></i></a>
+          <a href="#" class="icon"><i class='bx bxl-github'></i></a>
+          <a href="#" class="icon"><i class='bx bxl-linkedin'></i></a>
+        </div>
+        <button type="submit">Sign In</button>
+      </form>
+    </div>
 
-                registerBtn.addEventListener('click', () => {
-                    container.classList.add("active");
-                });
+    <div class="toggle-container">
+      <div class="toggle">
+        <div class="toggle-panel toggle-left">
+          <h1>Welcome Back!</h1>
+          <p>Enter your personal details to use all site features</p>
+          <button class="hidden" id="login">Sign In</button>
+        </div>
+        <div class="toggle-panel toggle-right">
+          <h1>Hello, Friend!</h1>
+          <p>Register with your personal details to use all site features</p>
+          <button class="hidden" id="register">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                loginBtn.addEventListener('click', () => {
-                    container.classList.remove("active");
-                });
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.getElementById('container');
+      const registerBtn = document.getElementById('register');
+      const loginBtn = document.getElementById('login');
 
-                // Sign in logic
-                const form = document.querySelector('.sign-in form');
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
+      registerBtn.addEventListener('click', () => container.classList.add("active"));
+      loginBtn.addEventListener('click', () => container.classList.remove("active"));
 
-                    const email = form.email.value.trim();
-                    const password = form.password.value;
-                    const submitBtn = form.querySelector('button');
-                    const originalBtnText = submitBtn.textContent;
+      const signInForm = document.querySelector('.sign-in form');
+      const emailInput = signInForm.querySelector('input[name="email"]');
+      const passwordInput = signInForm.querySelector('input[name="password"]');
+      const newPasswordInput = signInForm.querySelector('input[name="newPassword"]');
+      const confirmPasswordInput = signInForm.querySelector('input[name="confirmPassword"]');
+      const forgetLink = signInForm.querySelector('#forgotPasswordBtn');
+      const submitBtn = signInForm.querySelector('button');
+      const switchText = signInForm.querySelector('span');
+      const socialIcons = signInForm.querySelector('.social-icons');
+      const formTitle = document.getElementById('formTitle');
 
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> جاري المعالجة...';
+      let isResetMode = false;
 
-                    try {
-                        if (!email || !password) {
-                            throw new Error('البريد الإلكتروني وكلمة المرور مطلوبان');
-                        }
+      forgetLink.addEventListener("click", (e) => {
+  e.preventDefault();
+  isResetMode = true;
+  passwordInput.style.display = 'none';
+  passwordInput.removeAttribute('required'); // ⬅️ أضف هذا السطر
+  newPasswordInput.style.display = '';
+  confirmPasswordInput.style.display = '';
+  forgetLink.style.display = 'none';
+  switchText.style.display = 'none';
+  socialIcons.style.display = 'none';
+  submitBtn.textContent = "Send New Password";
+  formTitle.textContent = "Reset Password";
+});
 
-                        const response = await fetch('http://localhost:3000/api/login', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ email, password })
-                        });
+      signInForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
 
-                        const contentType = response.headers.get('content-type');
-                        if (!contentType || !contentType.includes('application/json')) {
-                            const errorText = await response.text();
-                            throw new Error(`استجابة غير متوقعة: ${errorText.substring(0, 100)}`);
-                        }
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
 
-                        const data = await response.json();
+        try {
+          if (!email) throw new Error("Please enter your email.");
 
-                        if (!response.ok) {
-                            throw new Error(data.message || 'فشل تسجيل الدخول');
-                        }
+          if (isResetMode) {
+            if (!newPassword || !confirmPassword) {
+              throw new Error("Please enter and confirm your new password.");
+            }
 
-                        localStorage.setItem('authToken', data.token);
-                        localStorage.setItem('user', JSON.stringify(data.user));
+            if (newPassword !== confirmPassword) {
+              throw new Error("Passwords do not match.");
+            }
 
-                        const redirectPath = data.redirectTo || '/home.html';
-                        window.location.href = redirectPath;
-
-                    } catch (error) {
-                        showAlert('error', error.message || 'حدث خطأ أثناء تسجيل الدخول');
-                        form.password.value = '';
-                    } finally {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = originalBtnText;
-                    }
-                });
-
-                // Register logic
-                const registerForm = document.getElementById("registerForm");
-
-                registerForm.addEventListener("submit", async (e) => {
-                    e.preventDefault();
-
-                    const name = registerForm.name.value.trim();
-                    const email = registerForm.email.value.trim();
-                    const password = registerForm.password.value;
-
-                    const submitBtn = registerForm.querySelector('button');
-                    const originalBtnText = submitBtn.textContent;
-
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> جاري المعالجة...';
-
-                    try {
-                        if (!name || !email || !password) {
-                            throw new Error("جميع الحقول مطلوبة");
-                        }
-
-                        const response = await fetch('http://localhost:3000/api/register', {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Accept": "application/json"
-                            },
-                            body: JSON.stringify({ name, email, password })
-                        });
-
-                        const data = await response.json();
-
-                        if (!response.ok) {
-                            throw new Error(data.message || "فشل التسجيل");
-                        }
-
-                        showAlert("success", "تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن.");
-                        registerForm.reset();
-                    } catch (err) {
-                        showAlert("error", err.message || "حدث خطأ أثناء التسجيل");
-                    } finally {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = originalBtnText;
-                    }
-                });
+            const response = await fetch("http://localhost:3000/api/reset-password", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+              },
+              body: JSON.stringify({ email, newPassword })
             });
 
-            function showAlert(type, message) {
-                const alertBox = document.createElement('div');
-                alertBox.className = `alert alert-${type}`;
-                alertBox.innerHTML = `
-                    <div class="alert-content">
-                        <i class="bx ${type === 'success' ? 'bx-check-circle' : 'bx-error-circle'}"></i>
-                        <span>${message}</span>
-                    </div>
-                    <i class="bx bx-x alert-close"></i>
-                `;
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || "Failed to reset password.");
 
-                document.body.appendChild(alertBox);
+            showAlert("success", "A reset email has been sent with the new password.");
 
-                setTimeout(() => {
-                    alertBox.classList.add('fade-out');
-                    setTimeout(() => alertBox.remove(), 300);
-                }, 5000);
+            // Reset UI
+            isResetMode = false;
+            newPasswordInput.style.display = 'none';
+            confirmPasswordInput.style.display = 'none';
+            passwordInput.style.display = '';
+            passwordInput.setAttribute('required', 'true'); // ⬅️ استعادة required
+            forgetLink.style.display = '';
+            switchText.style.display = '';
+            socialIcons.style.display = '';
+            submitBtn.textContent = 'Sign In';
+            formTitle.textContent = "Sign In";
+            signInForm.reset();
+          } else {
+            if (!password) throw new Error("Please enter your password.");
 
-                alertBox.querySelector('.alert-close').addEventListener('click', () => {
-                    alertBox.classList.add('fade-out');
-                    setTimeout(() => alertBox.remove(), 300);
-                });
-            }
-        </script>
-    </section>
+            const response = await fetch('http://localhost:3000/api/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Login failed.');
+
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            window.location.href = data.redirectTo || '/home.html';
+          }
+        } catch (err) {
+          showAlert("error", err.message);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = isResetMode ? "Send New Password" : "Sign In";
+        }
+      });
+
+      // Register logic
+      const registerForm = document.getElementById("registerForm");
+      registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = registerForm.name.value.trim();
+        const email = registerForm.email.value.trim();
+        const password = registerForm.password.value;
+
+        const submitBtn = registerForm.querySelector('button');
+        const originalBtnText = submitBtn.textContent;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
+
+        try {
+          if (!name || !email || !password) throw new Error("All fields are required.");
+
+          const response = await fetch('http://localhost:3000/api/register', {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({ name, email, password })
+          });
+
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message || "Registration failed.");
+
+          showAlert("success", "Account created successfully. You can now log in.");
+          registerForm.reset();
+        } catch (err) {
+          showAlert("error", err.message);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalBtnText;
+        }
+      });
+    });
+
+    function showAlert(type, message) {
+      const alertBox = document.createElement('div');
+      alertBox.className = `alert alert-${type}`;
+      alertBox.innerHTML = `
+        <div class="alert-content">
+          <i class="bx ${type === 'success' ? 'bx-check-circle' : 'bx-error-circle'}"></i>
+          <span>${message}</span>
+        </div>
+        <i class="bx bx-x alert-close"></i>
+      `;
+      document.body.appendChild(alertBox);
+      setTimeout(() => {
+        alertBox.classList.add('fade-out');
+        setTimeout(() => alertBox.remove(), 300);
+      }, 5000);
+      alertBox.querySelector('.alert-close').addEventListener('click', () => {
+        alertBox.classList.add('fade-out');
+        setTimeout(() => alertBox.remove(), 300);
+      });
+    }
+  </script>
+</section>
 </body>
 </html>
-
-
-
-
-
-
-
-

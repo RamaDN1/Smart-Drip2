@@ -19,9 +19,14 @@
         <li><a href="#" onclick="showSection('feedback', loadFeedback)"><i class="fas fa-comments"></i> 💬Feedback</a></li>
         <li><a href="#" onclick="showSection('users', loadUsers)"><i class="fas fa-user"></i> 📺Users</a></li>
         <li><a href="#" onclick="showSection('settings')"><i class="fas fa-cogs"></i>⚙️ Settings</a></li>
+        <br> <br> <br> <br><br> <br> <br> <br> <br>
+        <li>
+          <a href="home.html" style="font-size: 25px; color: white; text-decoration: none;">
+            <i class="fas fa-home"></i> 🔙 <span style="text-decoration: underline;">Back</span>
+          </a>
+        </li>
       </ul>
-      <button class="add-entry-btn" onclick="showAddEntryModal()"><i class="fas fa-plus-circle"></i>+ Add Entry</button>
-    </aside>
+          </aside>
     
     <main class="main-content">
       <h1>Dashboard Overview</h1>
@@ -406,9 +411,36 @@ async function loadUsers() {
     `;
   }
 }
+
+async function loadDashboardCounts() {
+  try {
+    const token = localStorage.getItem("authToken");
+
+    const [patientsRes, roomsRes, valvesRes, reviewsRes] = await Promise.all([
+      fetch("/api/patients", { headers: { Authorization: `Bearer ${token}` } }),
+      fetch("/api/rooms", { headers: { Authorization: `Bearer ${token}` } }),
+      fetch("/api/valve_status", { headers: { Authorization: `Bearer ${token}` } }),
+      fetch("/api/reviews/today", { headers: { Authorization: `Bearer ${token}` } })
+    ]);
+
+    const patients = await patientsRes.json();
+    const rooms = await roomsRes.json();
+    const valves = await valvesRes.json();
+    const reviews = await reviewsRes.json();
+
+    document.getElementById("totalPatients").textContent = patients.patients?.length || 0;
+    document.getElementById("occupiedRooms").textContent = rooms.rooms?.filter(r => r.occupied)?.length || 0;
+    document.getElementById("openValves").textContent = valves?.filter(v => v.status === "open")?.length || 0;
+    document.getElementById("todayReviews").textContent = reviews.reviews?.length || 0;
+
+  } catch (err) {
+    console.error("Error loading dashboard counts:", err);
+  }
+}
     window.onload = () => {
       showSection('dashboard');
       loadRecentAppointments();
+      loadDashboardCounts();
     };
   </script>
 </body>
