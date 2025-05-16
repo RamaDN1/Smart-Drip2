@@ -17,13 +17,15 @@
         <input type="text" name="name" placeholder="Name" required />
         <input type="email" name="email" placeholder="Email" required />
         <input type="password" name="password" placeholder="Password" required />
-        <span>or use your email for registration</span>
-        <div class="social-icons">
-          <a href="#" class="icon"><i class='bx bxl-facebook'></i></a>
-          <a href="#" class="icon"><i class='bx bxl-google'></i></a>
-          <a href="#" class="icon"><i class='bx bxl-github'></i></a>
-          <a href="#" class="icon"><i class='bx bxl-linkedin'></i></a>
-        </div>
+          <!-- Role Dropdown -->
+<select name="role" id="role" required style="width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc;">
+<option value="" disabled selected>Select Role</option>
+<option value="doctor">Doctor</option>
+<option value="nurse">Nurse</option>
+<option value="receptionist">Receptionist</option>
+<option value="admin">Admin</option>
+</select>
+
         <button type="submit">Sign Up</button>
       </form>
     </div>
@@ -36,13 +38,7 @@
         <input type="password" name="newPassword" placeholder="New Password" style="display: none;" />
         <input type="password" name="confirmPassword" placeholder="Confirm Password" style="display: none;" />
         <a href="#" id="forgotPasswordBtn">Forget Your Password?</a>
-        <span>or use your email and password</span>
-        <div class="social-icons">
-          <a href="#" class="icon"><i class='bx bxl-facebook'></i></a>
-          <a href="#" class="icon"><i class='bx bxl-google'></i></a>
-          <a href="#" class="icon"><i class='bx bxl-github'></i></a>
-          <a href="#" class="icon"><i class='bx bxl-linkedin'></i></a>
-        </div>
+        
         <button type="submit">Sign In</button>
       </form>
     </div>
@@ -80,7 +76,6 @@
       const forgetLink = signInForm.querySelector('#forgotPasswordBtn');
       const submitBtn = signInForm.querySelector('button');
       const switchText = signInForm.querySelector('span');
-      const socialIcons = signInForm.querySelector('.social-icons');
       const formTitle = document.getElementById('formTitle');
 
       let isResetMode = false;
@@ -197,7 +192,7 @@
               "Content-Type": "application/json",
               "Accept": "application/json"
             },
-            body: JSON.stringify({ name, email, password })
+            body: JSON.stringify({ name, email, password , role })
           });
 
           const data = await response.json();

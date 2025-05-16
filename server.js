@@ -116,7 +116,7 @@ app.post("/api/login", async (req, res) => {
 // تسجيل مستخدم جديد
 app.post("/api/register", async (req, res) => {
   try {
-    let { name, email, password } = req.body;
+    let { name, email, password , role} = req.body;
 
     // تعديل الإيميل إذا كان @example.com ليصير @gmail.com
     if (email.endsWith('@example.com')) {
@@ -134,7 +134,7 @@ app.post("/api/register", async (req, res) => {
 
     const newUser = await pool.query(
       "INSERT INTO users (name, email, password, role, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, name, email, role",
-      [name, email, hashedPassword, 'doctor']
+      [name, email, hashedPassword, role]
     );
 
     res.status(201).json({
@@ -213,55 +213,56 @@ app.post("/api/reset-password", async (req, res) => {
   }
 
   setInterval(async () => {
-    try {
-      const now = new Date();
-      const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
-  
-      const result = await pool.query(`
-        SELECT room_id, start_time, end_time FROM valve_schedules
-        WHERE is_active = true
-      `);
-  
-      for (const row of result.rows) {
-        const start = row.start_time.substring(0, 5);
-        const end = row.end_time.substring(0, 5);
-        const roomId = row.room_id;
-  
-        // ✅ فتح الصمام إذا الوقت الحالي بين start و end
-        if (currentTime >= start && currentTime < end) {
-          console.log(`🔓 فتح الصمام للغرفة ${roomId}`);
-          await axios.get('http://192.168.14.109/api/open-valve');
-  
-          await pool.query(
-            `UPDATE valve_status SET status = 'open', updated_at = CURRENT_TIMESTAMP WHERE room_id = $1`,
-            [roomId]
-          );
-  
-          await pool.query(
-            `INSERT INTO valve_control_logs (room_id, action, performed_by) VALUES ($1, 'opened', 'Scheduler')`,
-            [roomId]
-          );
-        }
-  
-        // ✅ إغلاق الصمام عند نهاية الفترة
-        if (currentTime === end) {
-          console.log(`🔒 إغلاق الصمام للغرفة ${roomId}`);
-          await axios.get('http://192.168.14.109/api/close-valve');
-  
-          await pool.query(
-            `UPDATE valve_status SET status = 'closed', updated_at = CURRENT_TIMESTAMP WHERE room_id = $1`,
-            [roomId]
-          );
-  
-          await pool.query(
-            `INSERT INTO valve_control_logs (room_id, action, performed_by) VALUES ($1, 'closed', 'Scheduler')`,
-            [roomId]
-          );
-        }
+  try {
+    const now = new Date();
+    const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
+
+    const result = await pool.query(`
+      SELECT room_id, start_time, end_time, drip_count, drip_interval_seconds
+      FROM valve_schedules
+      WHERE is_active = true
+    `);
+
+    for (const row of result.rows) {
+      const start = row.start_time.substring(0, 5);
+      const end = row.end_time.substring(0, 5);
+      const roomId = row.room_id;
+
+     if (currentTime >= start && currentTime < end) {
+  console.log(`🔓 فتح الصمام للغرفة ${roomId}`);
+
+  // إرسال القيم المطلوبة مباشرة إلى ESP32
+  await axios.get(`http://192.168.100.109/api/open-valve?drips=${row.drip_count}&interval=${row.drip_interval_seconds}`);
+
+  await pool.query(
+    `UPDATE valve_status SET status = 'open', updated_at = CURRENT_TIMESTAMP WHERE room_id = $1`,
+    [roomId]
+  );
+
+  await pool.query(
+    `INSERT INTO valve_control_logs (room_id, action, performed_by) VALUES ($1, 'opened', 'Scheduler')`,
+    [roomId]
+  );
+}
+      // إغلاق عند انتهاء الفترة
+      if (currentTime === end) {
+        console.log(`🔒 إغلاق الصمام للغرفة ${roomId}`);
+        await axios.get('http://192.168.100.109/api/close-valve');
+
+        await pool.query(
+          `UPDATE valve_status SET status = 'closed', updated_at = CURRENT_TIMESTAMP WHERE room_id = $1`,
+          [roomId]
+        );
+
+        await pool.query(
+          `INSERT INTO valve_control_logs (room_id, action, performed_by) VALUES ($1, 'closed', 'Scheduler')`,
+          [roomId]
+        );
       }
-    } catch (err) {
-      console.error("❌ Scheduler Error:", err.message);
     }
-  }, 60000); // كل 60 ثانية
+  } catch (err) {
+    console.error("❌ Scheduler Error:", err.message);
+  }
+}, 60000); // كل دقيقة
   
 module.exports = app;

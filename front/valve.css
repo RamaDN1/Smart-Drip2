@@ -356,5 +356,34 @@ h1 {
     transform: scale(1);
   }
 }
+/* إضافي لتحسين شكل الفترات */
+    
+  .time-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
 
-  
+.time-input label {
+  min-width: 70px;
+  font-weight: bold;
+}
+
+.time-input input[type="time"],
+.time-input input[type="number"] {
+  width: 100px;
+  padding: 5px;
+  font-size: 14px;
+}
+
+.time-input button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+

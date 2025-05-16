@@ -52,16 +52,21 @@
               <option value="">-- اختر الغرفة --</option>
             </select>
           </div>
-          <div class="time-input">
-            <label for="startTime">Start Time (HH:MM):</label>
-            <input type="time" id="startTime" required />
-          </div>
-          <div class="time-input">
-            <label for="endTime">End Time (HH:MM):</label>
-            <input type="time" id="endTime" required />
-          </div>
-          <button id="setTime" class="time-btn">Set Time</button>
-        </div>
+          <div id="scheduleList">
+  <div class="time-input">
+    <label>Start Time:</label>
+    <input type="time" class="startTime" required />
+    <label>End Time:</label>
+    <input type="time" class="endTime" required />
+    <label>Drips:</label>
+    <input type="number" class="dripCount" min="1" required />
+    <label>Interval (sec):</label>
+    <input type="number" class="dripInterval" min="1" required />
+  </div>
+</div>
+         <button id="addSchedule" class="time-btn">+ إضافة فترة جديدة</button>
+          <button id="submitSchedules" class="time-btn">💾 حفظ كل الفترات</button>
+           </div>
 
         <!-- قسم التحكم بالصمام -->
         <h1>Valve Control</h1>
@@ -90,7 +95,7 @@
     let userRole = null;
     const token = localStorage.getItem("authToken");
     const userData = localStorage.getItem("user");
-    const espIP = "192.168.14.109";
+    const espIP = "192.168.100.109";
 
     // التحقق من تسجيل الدخول
     if (!token || !userData) {
@@ -129,13 +134,16 @@
       document.getElementById("closeValve").style.display = "none";
       document.getElementById("setTime").style.display = "none";
       document.getElementById("fetchValveStatus").style.display = "none";
+      document.getElementById("addSchedule").style.display = "none";
+      document.getElementById("submitSchedules").style.display = "none";
     }
 
     // إعداد مستمعي الأحداث
     function setupEventListeners() {
       document.getElementById("openValve").addEventListener("click", () => toggleValve("open"));
       document.getElementById("closeValve").addEventListener("click", () => toggleValve("close"));
-      document.getElementById("setTime").addEventListener("click", setSchedule);
+       document.getElementById("addSchedule").addEventListener("click", addScheduleInput);
+document.getElementById("submitSchedules").addEventListener("click", submitSchedules);
       document.getElementById("roomSelect").addEventListener("change", fetchValveStatus);
       document.getElementById("fetchValveStatus").addEventListener("click", getValveStatusFromESP);
     }
@@ -188,18 +196,21 @@
 }
     // وظائف التحكم بالصمام
     async function toggleValve(action) {
-      const roomId = document.getElementById("roomSelect").value;
-      if (!roomId) return alert("Please select a room first");
+  const roomId = document.getElementById("roomSelect").value;
+  if (!roomId) return alert("Please select a room first");
 
-      try {
-        await updateServerValveStatus(roomId, action);
-        await controlESPValve(action);
-        updateStatusUI(action);
-        addNotification(`Valve ${action}ed for Room ${roomId}`);
-      } catch (e) {
-        handleValveError(e, action);
-      }
-    }
+  try {
+    await updateServerValveStatus(roomId, action);
+    await controlESPValve(action);
+
+    // جلب الحالة الحقيقية بعد التحديث من السيرفر
+    await fetchValveStatus();
+
+    addNotification(`Valve ${action}ed for Room ${roomId}`);
+  } catch (e) {
+    handleValveError(e, action);
+  }
+}
 
     async function updateServerValveStatus(roomId, action) {
       const res = await fetch(`/api/valve_status/${roomId}`, {
@@ -282,39 +293,74 @@
     }
 
     // وظائف الجدولة
-    async function setSchedule() {
-  const roomId = document.getElementById("roomSelect").value;
-  const start = document.getElementById("startTime").value;
-  const end = document.getElementById("endTime").value;
-
-  // ✅ تحقق من تعبئة كل الحقول
-  if (!roomId || !start || !end) {
-    return alert("يرجى تحديد الغرفة ووقت البداية والنهاية");
+   function addScheduleInput() {
+    const scheduleList = document.getElementById("scheduleList");
+    const div = document.createElement("div");
+    div.className = "time-input";
+    div.innerHTML = `
+      <label>Start Time:</label>
+      <input type="time" class="startTime" required />
+      <label>End Time:</label>
+      <input type="time" class="endTime" required />
+      <label>Drips:</label>
+      <input type="number" class="dripCount" min="1" required />
+      <label>Interval (sec):</label>
+      <input type="number" class="dripInterval" min="1" required />
+    `;
+    scheduleList.appendChild(div);
   }
 
-  try {
-    const res = await fetch("/api/valve_status/schedule", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      // ✅ أرسل room_id أيضًا مع start و end
-      body: JSON.stringify({ room_id: roomId, start, end })
-    });
+async function submitSchedules() {
+    const roomId = document.getElementById("roomSelect").value;
+    if (!roomId) return alert("يرجى اختيار الغرفة");
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || "فشل في ضبط الجدولة");
+    const startTimes = document.querySelectorAll(".startTime");
+    const endTimes = document.querySelectorAll(".endTime");
+    const dripCounts = document.querySelectorAll(".dripCount");
+    const dripIntervals = document.querySelectorAll(".dripInterval");
+
+    const schedules = [];
+
+    for (let i = 0; i < startTimes.length; i++) {
+      const start = startTimes[i].value;
+      const end = endTimes[i].value;
+      const drips = parseInt(dripCounts[i].value);
+      const interval = parseInt(dripIntervals[i].value);
+
+      if (!start || !end || !drips || !interval) {
+        return alert("يرجى تعبئة كل البيانات");
+      }
+
+      schedules.push({
+        start,
+        end,
+        drip_count: drips,
+        drip_interval: interval
+      });
     }
 
-    alert("✅ تم ضبط الجدولة بنجاح");
-    addNotification(`🕒 تم جدولة Room ${roomId} من ${start} إلى ${end}`);
-  } catch (e) {
-    console.error("❌ setSchedule error:", e);
-    alert(`خطأ: ${e.message}`);
+    try {
+      const res = await fetch("/api/valve_status/schedule-multiple", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ room_id: roomId, schedules })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "فشل في إرسال الجدولة");
+      }
+
+      alert("✅ تم حفظ كل البيانات بنجاح");
+      await fetchValveStatus(); // تحديث الحالة في الواجهة
+    } catch (err) {
+      console.error(err);
+      alert("❌ فشل في الحفظ");
+    }
   }
-}
     // وظائف الإشعارات
     function addNotification(msg) {
       const list = document.getElementById("notificationsList");
