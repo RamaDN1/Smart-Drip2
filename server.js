@@ -58,6 +58,14 @@ app.post("/api/login", async (req, res) => {
 
       const { email, password } = req.body;
 
+      // التحقق من أن الإيميل يحتوي على أحرف وليس أرقام فقط قبل @
+const usernamePart = email.split('@')[0];
+if (/^\d+$/.test(usernamePart)) {
+  return res.status(400).json({
+    success: false,
+    message: "البريد الإلكتروني يجب أن يحتوي على أحرف وليس أرقام فقط"
+  });
+}
       const user = await pool.query(
         "SELECT id, name, email, password, role FROM users WHERE email = $1", 
         [email]
@@ -130,6 +138,19 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
+    // التحقق من أن الإيميل يحتوي على أحرف وليس أرقام فقط قبل @
+const usernamePart = email.split('@')[0];
+if (/^\d+$/.test(usernamePart)) {
+  return res.status(400).json({
+    message: "البريد الإلكتروني يجب أن يحتوي على أحرف وليس أرقام فقط"
+  });
+}
+// التحقق من أن كلمة المرور تحتوي على 8 خانات على الأقل (أحرف أو أرقام أو رموز)
+if (!/^.{8,}$/.test(password)) {
+  return res.status(400).json({
+    message: "كلمة المرور يجب أن تكون 8 خانات على الأقل (أحرف أو أرقام أو رموز)"
+  });
+}
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const newUser = await pool.query(
@@ -192,7 +213,31 @@ app.post("/api/reset-password", async (req, res) => {
     res.status(500).json({ message: "حدث خطأ أثناء تحديث كلمة المرور" });
   }
 });
-  
+app.post("/api/notifications/warning", async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ error: "Message required" });
+
+    await pool.query(
+      "INSERT INTO notifications (message, created_at) VALUES ($1, NOW())",
+      [message]
+    );
+
+    console.log("🔔 إشعار مسجل:", message);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("❌ خطأ تسجيل الإشعار:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+app.get("/api/notifications", authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM notifications ORDER BY created_at DESC LIMIT 50");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "فشل في تحميل الإشعارات" });
+  }
+});  
   // إعادة توجيه أي طلب غير موجود
   app.get("*", (req, res) => {
       res.sendFile(path.join(__dirname, "front", "login.html"));
@@ -211,12 +256,14 @@ app.post("/api/reset-password", async (req, res) => {
           console.log(`🚀 Server running on port: http://localhost:${PORT}`);
       });
   }
-
+  
   setInterval(async () => {
   try {
     const now = new Date();
     const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
+    console.log(`🕒 الوقت الحالي: ${currentTime}`);
 
+    console.log("📋 جاري تحميل الجدولة من قاعدة البيانات...");
     const result = await pool.query(`
       SELECT room_id, start_time, end_time, drip_count, drip_interval_seconds
       FROM valve_schedules
@@ -228,26 +275,39 @@ app.post("/api/reset-password", async (req, res) => {
       const end = row.end_time.substring(0, 5);
       const roomId = row.room_id;
 
-     if (currentTime >= start && currentTime < end) {
-  console.log(`🔓 فتح الصمام للغرفة ${roomId}`);
+      // فتح الصمام إذا الوقت داخل المدى
+      if (currentTime >= start && currentTime < end) {
+        console.log(`💡 الجدولة نشطة الآن للغرفة ${roomId} - سيتم إرسال أمر الفتح إلى ESP32`);
 
-  // إرسال القيم المطلوبة مباشرة إلى ESP32
-  await axios.get(`http://192.168.100.109/api/open-valve?drips=${row.drip_count}&interval=${row.drip_interval_seconds}`);
+        try {
+          const espResponse = await axios.get(
+            `http://192.168.14.109/api/open-valve?drips=${row.drip_count}&interval=${row.drip_interval_seconds}`
+          );
+          console.log(`✅ تم إرسال الأمر إلى ESP32 بنجاح: ${espResponse.status}`);
+        } catch (espError) {
+          console.error(`❌ فشل إرسال الأمر إلى ESP32: ${espError.message}`);
+        }
 
-  await pool.query(
-    `UPDATE valve_status SET status = 'open', updated_at = CURRENT_TIMESTAMP WHERE room_id = $1`,
-    [roomId]
-  );
+        await pool.query(
+          `UPDATE valve_status SET status = 'open', updated_at = CURRENT_TIMESTAMP WHERE room_id = $1`,
+          [roomId]
+        );
 
-  await pool.query(
-    `INSERT INTO valve_control_logs (room_id, action, performed_by) VALUES ($1, 'opened', 'Scheduler')`,
-    [roomId]
-  );
-}
+        await pool.query(
+          `INSERT INTO valve_control_logs (room_id, action, performed_by) VALUES ($1, 'opened', 'Scheduler')`,
+          [roomId]
+        );
+      }
+
       // إغلاق عند انتهاء الفترة
       if (currentTime === end) {
         console.log(`🔒 إغلاق الصمام للغرفة ${roomId}`);
-        await axios.get('http://192.168.100.109/api/close-valve');
+        try {
+          await axios.get('http://192.168.14.109/api/close-valve');
+          console.log(`✅ تم إرسال أمر الإغلاق إلى ESP32`);
+        } catch (err) {
+          console.error(`❌ فشل إرسال أمر الإغلاق إلى ESP32: ${err.message}`);
+        }
 
         await pool.query(
           `UPDATE valve_status SET status = 'closed', updated_at = CURRENT_TIMESTAMP WHERE room_id = $1`,

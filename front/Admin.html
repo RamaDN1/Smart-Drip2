@@ -15,10 +15,10 @@
         <li><a href="#" onclick="showSection('patients', loadPatients)"><i class="fas fa-users"></i>👤 Patients</a></li>
         <li><a href="#" onclick="showSection('rooms', loadRooms)"><i class="fas fa-hospital-room"></i> 🛏️Rooms</a></li>
         <li><a href="#" onclick="showSection('valves', loadValves)"><i class="fas fa-cogs"></i>🔒 Valve Control</a></li>
+        <li><a href="#" onclick="showSection('notifications', loadNotifications)"><i class="fas fa-bell"></i> 🔔Notifications</a></li>
         <li><a href="#" onclick="showSection('appointments', loadAllAppointments)"><i class="fas fa-calendar-alt"></i> 📅Appointments</a></li>
         <li><a href="#" onclick="showSection('feedback', loadFeedback)"><i class="fas fa-comments"></i> 💬Feedback</a></li>
         <li><a href="#" onclick="showSection('users', loadUsers)"><i class="fas fa-user"></i> 📺Users</a></li>
-        <li><a href="#" onclick="showSection('settings')"><i class="fas fa-cogs"></i>⚙️ Settings</a></li>
         <br> <br> <br> <br><br> <br> <br> <br> <br>
         <li>
           <a href="home.html" style="font-size: 25px; color: white; text-decoration: none;">
@@ -180,6 +180,24 @@
           </table>
         </div>
       </div>
+
+      <div id="notificationsSection" class="dynamic-section" style="display: none;">
+  <h2>🔔 Notifications</h2>
+  <div class="table-section">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Message</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="notificationsTable">
+        <tr><td colspan="3">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
     </main>
   </div>
 
@@ -242,27 +260,30 @@
     }
 
     async function loadValves() {
-      const res = await fetch("/api/valves", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
-      });
-      const data = await res.json();
-      const table = document.getElementById("valvesTable");
-      if (!Array.isArray(data.valves)) {
-        table.innerHTML = `<tr><td colspan='3'>Invalid data</td></tr>`;
-        return;
-      }
-      table.innerHTML = "";
-      data.valves.forEach(v => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${v.room_number}</td>
-          <td>${v.status}</td>
-          <td>${v.last_updated || 'N/A'}</td>
-        `;
-        table.appendChild(row);
-      });
-    }
+  const res = await fetch("/api/valve_status", {
+    headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
+  });
 
+  const data = await res.json();
+  const table = document.getElementById("valvesTable");
+
+  // ✅ التعديل هنا ↓↓
+  if (!Array.isArray(data)) {
+    table.innerHTML = `<tr><td colspan='3'>Invalid data</td></tr>`;
+    return;
+  }
+
+  table.innerHTML = "";
+  data.forEach(v => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${v.room_id}</td>
+      <td>${v.status}</td>
+      <td>${v.updated_at || 'N/A'}</td>
+    `;
+    table.appendChild(row);
+  });
+}
     // دالة لتحميل المواعيد الحديثة (آخر 7 مواعيد)
 async function loadRecentAppointments() {
   try {
@@ -412,6 +433,40 @@ async function loadUsers() {
   }
 }
 
+async function loadNotifications() {
+  try {
+    const res = await fetch("/api/notifications", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`
+      }
+    });
+
+    const data = await res.json();
+    const table = document.getElementById("notificationsTable");
+
+    if (!Array.isArray(data)) {
+      table.innerHTML = `<tr><td colspan="3">Invalid data</td></tr>`;
+      return;
+    }
+
+    table.innerHTML = "";
+    data.forEach((n, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${n.message}</td>
+        <td>${new Date(n.created_at).toLocaleString()}</td>
+      `;
+      table.appendChild(row);
+    });
+
+  } catch (err) {
+    console.error("❌ Error loading notifications:", err);
+    document.getElementById("notificationsTable").innerHTML =
+      `<tr><td colspan="3">Error loading data</td></tr>`;
+  }
+}
+
 async function loadDashboardCounts() {
   try {
     const token = localStorage.getItem("authToken");
@@ -430,7 +485,7 @@ async function loadDashboardCounts() {
 
     document.getElementById("totalPatients").textContent = patients.patients?.length || 0;
     document.getElementById("occupiedRooms").textContent = rooms.rooms?.filter(r => r.occupied)?.length || 0;
-    document.getElementById("openValves").textContent = valves?.filter(v => v.status === "open")?.length || 0;
+    document.getElementById("openValves").textContent = Array.isArray(valves) ? valves.filter(v => v.status === "open").length : 0;
     document.getElementById("todayReviews").textContent = reviews.reviews?.length || 0;
 
   } catch (err) {
@@ -445,4 +500,3 @@ async function loadDashboardCounts() {
   </script>
 </body>
 </html>
-

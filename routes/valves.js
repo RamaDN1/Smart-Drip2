@@ -44,7 +44,7 @@ router.get("/:room_id", authenticateToken, checkRole(['admin', 'doctor', 'nurse'
 });
 
 // ✅ تحديث حالة الصمام (فتح/إغلاق)
-router.put("/:room_id", authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
+router.put("/:room_id", authenticateToken, checkRole([ 'doctor', 'nurse']), async (req, res) => {
     try {
         const { room_id } = req.params;
         const { status } = req.body;
@@ -101,7 +101,7 @@ router.post("/", authenticateToken, checkRole(['admin', 'doctor', 'nurse']), asy
 });
 
 // ✅ ضبط الجدولة (فترة واحدة فقط)
-router.post("/schedule", authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
+router.post("/schedule", authenticateToken, checkRole([ 'doctor', 'nurse']), async (req, res) => {
     try {
         const { room_id, start, end } = req.body;
 
@@ -124,8 +124,8 @@ router.post("/schedule", authenticateToken, checkRole(['admin', 'doctor', 'nurse
     }
 });
 
-// 🆕 ضبط الجدولة لعدة فترات دفعة واحدة
-router.post("/schedule-multiple", authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
+// 🆕 ضبط الجدولة لعدة فترات دفعة واحدة (مع التحقق من drips × interval ≤ الفترة)
+router.post("/schedule-multiple", authenticateToken, checkRole([ 'doctor', 'nurse']), async (req, res) => {
   try {
     const { room_id, schedules } = req.body;
 
@@ -138,6 +138,16 @@ router.post("/schedule-multiple", authenticateToken, checkRole(['admin', 'doctor
     for (const { start, end, drip_count, drip_interval } of schedules) {
       if (!start || !end || !drip_count || !drip_interval) {
         return res.status(400).json({ error: "كل فترة يجب أن تحتوي على وقت ونقاط وسرعة" });
+      }
+
+      // ✅ تحقق: هل drips × interval ≤ طول الفترة؟
+      const startMin = parseInt(start.substring(0, 2)) * 60 + parseInt(start.substring(3, 5));
+      const endMin = parseInt(end.substring(0, 2)) * 60 + parseInt(end.substring(3, 5));
+      const durationInSeconds = (endMin - startMin) * 60;
+      const totalTimeNeeded = drip_count * drip_interval;
+
+      if (totalTimeNeeded > durationInSeconds) {
+        return res.status(400).json({ error: `الفترة غير كافية. تحتاج إلى ${totalTimeNeeded / 60} دقيقة على الأقل` });
       }
 
       await pool.query(

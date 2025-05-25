@@ -1,3 +1,4 @@
+/* ✅ الكود الأصلي بالكامل */
 body {
   font-family: 'Cairo', sans-serif;
   background-color: #d9d7da;
@@ -83,7 +84,7 @@ h1 {
 .time-btn {
   width: 95%;
   padding: 12px;
-  background: #9147d5;
+  background: #9c48eb;
   color: white;
   border: none;
   border-radius: 5px;
@@ -93,7 +94,7 @@ h1 {
 }
 
 .time-btn:hover {
-  background: #7a37b5;
+  background: #743ba5;
 }
 
 .valve-control {
@@ -252,7 +253,6 @@ h1 {
   transform: scale(1.05);
 }
 
-/* ✅ ألوان الحالات */
 .room-open {
   background-color: #e6f9ec;
   color: #4add52;
@@ -265,7 +265,6 @@ h1 {
   border: 2px solid #dc3545;
 }
 
-/* ✅ أيقونة حالة */
 .room-box::before {
   content: attr(data-icon);
   font-size: 24px;
@@ -356,9 +355,9 @@ h1 {
     transform: scale(1);
   }
 }
+
 /* إضافي لتحسين شكل الفترات */
-    
-  .time-input {
+.time-input {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -387,3 +386,53 @@ h1 {
   font-size: 16px;
 }
 
+/* ✅ تحسينات مضافة على شكل room-box */
+.room-box {
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.room-box:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -30px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.room-box .status-text {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 6px;
+}
+
+.room-open {
+  background-color: #e9fbe9 !important;
+  border: 2px solid #28a745;
+  color: #155724;
+}
+
+.room-closed {
+  background-color: #fde8e8 !important;
+  border: 2px solid #dc3545;
+  color: #721c24;
+}
+
+.room-box::before {
+  content: attr(data-icon);
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.room-box:hover {
+  transform: scale(1.06);
+}

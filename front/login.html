@@ -22,7 +22,7 @@
 <option value="" disabled selected>Select Role</option>
 <option value="doctor">Doctor</option>
 <option value="nurse">Nurse</option>
-<option value="receptionist">Receptionist</option>
+<option value="Patient">Patient</option>
 <option value="admin">Admin</option>
 </select>
 
@@ -75,7 +75,6 @@
       const confirmPasswordInput = signInForm.querySelector('input[name="confirmPassword"]');
       const forgetLink = signInForm.querySelector('#forgotPasswordBtn');
       const submitBtn = signInForm.querySelector('button');
-      const switchText = signInForm.querySelector('span');
       const formTitle = document.getElementById('formTitle');
 
       let isResetMode = false;
@@ -88,8 +87,6 @@
   newPasswordInput.style.display = '';
   confirmPasswordInput.style.display = '';
   forgetLink.style.display = 'none';
-  switchText.style.display = 'none';
-  socialIcons.style.display = 'none';
   submitBtn.textContent = "Send New Password";
   formTitle.textContent = "Reset Password";
 });
@@ -137,8 +134,6 @@
             passwordInput.style.display = '';
             passwordInput.setAttribute('required', 'true'); // ⬅️ استعادة required
             forgetLink.style.display = '';
-            switchText.style.display = '';
-            socialIcons.style.display = '';
             submitBtn.textContent = 'Sign In';
             formTitle.textContent = "Sign In";
             signInForm.reset();
@@ -176,7 +171,8 @@
         const name = registerForm.name.value.trim();
         const email = registerForm.email.value.trim();
         const password = registerForm.password.value;
-
+        const role = registerForm.role.value;
+        
         const submitBtn = registerForm.querySelector('button');
         const originalBtnText = submitBtn.textContent;
 

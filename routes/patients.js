@@ -178,7 +178,7 @@ router.get('/:id', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), a
 });
 
 // 🔹 إضافة مريض جديد
-router.post('/', authenticateToken, checkRole(['admin', 'doctor', 'receptionist']), async (req, res) => {
+router.post('/', authenticateToken, checkRole(['admin']), async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -275,7 +275,7 @@ router.post('/', authenticateToken, checkRole(['admin', 'doctor', 'receptionist'
 });
 
 // 🔹 تحديث بيانات المريض
-router.put('/:id', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
+router.put('/:id', authenticateToken, checkRole([ 'doctor', 'nurse']), async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

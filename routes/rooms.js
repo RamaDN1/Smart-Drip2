@@ -58,7 +58,7 @@ router.get('/available', authenticateToken, checkRole(['admin', 'doctor']), asyn
 });
 
 // 🔹 إضافة غرفة جديدة
-router.post('/', authenticateToken, checkRole(['doctor','admin']), async (req, res) => {
+router.post('/', authenticateToken, checkRole(['admin']), async (req, res) => {
   try {
     const { room_number, floor } = req.body;
 
@@ -112,7 +112,7 @@ router.put('/:id', authenticateToken, checkRole(['admin']), async (req, res) => 
 });
 
 // 🔹 حجز غرفة لمريض
-router.put('/:id/reserve', authenticateToken, checkRole(['admin', 'doctor']), async (req, res) => { 
+router.put('/:id/reserve', authenticateToken, checkRole(['admin']), async (req, res) => { 
   try {
     const { id } = req.params;
     const { patientId } = req.body;
@@ -160,7 +160,7 @@ router.put('/:id/reserve', authenticateToken, checkRole(['admin', 'doctor']), as
 });
 
 // 🔹 تسجيل خروج مريض
-router.post('/:id/checkout', authenticateToken, checkRole(['admin', 'doctor']), async (req, res) => {
+router.post('/:id/checkout', authenticateToken, checkRole(['admin']), async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

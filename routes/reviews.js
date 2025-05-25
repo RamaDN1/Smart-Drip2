@@ -12,7 +12,7 @@ const validateReviewData = [
 ];
 
 // ✅ إنشاء موعد مراجعة جديد
-router.post('/', authenticateToken,  checkRole(['doctor', 'admin', 'receptionist']),validateReviewData, async (req, res) => {
+router.post('/', authenticateToken,  checkRole(['doctor', 'admin']),validateReviewData, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ 
@@ -199,7 +199,7 @@ router.get('/patient/:patient_id', authenticateToken, async (req, res) => {
 });
 
 // ✅ تحديث موعد المراجعة
-router.put('/:id/update-time', authenticateToken, checkRole(['doctor', 'admin', 'receptionist']), async (req, res) => {
+router.put('/:id/update-time', authenticateToken, checkRole(['doctor', 'admin']), async (req, res) => {
     const { id } = req.params;
     const { review_date, review_time } = req.body;
   

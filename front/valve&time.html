@@ -27,7 +27,7 @@
         <a href="room.html">Rooms</a>
         <a class="active" href="valve&time.html">Valve & Time</a>
         <a href="Features.html">Features</a>
-        <a href="reviwe.html">Review</a>
+        <a href="reviwe.html">Rates</a>
         <a href="help.html">Help</a>
         <a href="#" id="logoutBtn">Logout</a>
       </div>
@@ -36,9 +36,9 @@
     <div class="dashboard-container">
       <!-- لوحة الإشعارات -->
       <div id="notificationsPanel" class="notifications-panel hidden">
-        <h2>🔔 الإشعارات</h2>
+        <h2>🔔 notification</h2>
         <ul id="notificationsList"></ul>
-        <button onclick="clearNotifications()">🗑️ مسح الكل</button>
+        <button onclick="clearNotifications()">🗑️ delete all</button>
       </div>
 
       <br><br>
@@ -49,7 +49,7 @@
           <div class="time-input">
             <label for="roomSelect">Select Room:</label>
             <select id="roomSelect" required>
-              <option value="">-- اختر الغرفة --</option>
+              <option value="">-- select room --</option>
             </select>
           </div>
           <div id="scheduleList">
@@ -64,8 +64,9 @@
     <input type="number" class="dripInterval" min="1" required />
   </div>
 </div>
-         <button id="addSchedule" class="time-btn">+ إضافة فترة جديدة</button>
-          <button id="submitSchedules" class="time-btn">💾 حفظ كل الفترات</button>
+<br>
+         <button id="addSchedule" class="time-btn">+ Add a new period</button><br><br>
+          <button id="submitSchedules" class="time-btn">💾 Save all periods</button><br>
            </div>
 
         <!-- قسم التحكم بالصمام -->
@@ -73,7 +74,7 @@
         <div class="valve-control">
           <button id="openValve" class="valve-btn open-btn">Open Valve 🔓</button>
           <button id="closeValve" class="valve-btn close-btn">Close Valve 🔒</button>
-          <button id="fetchValveStatus" class="valve-btn" style="background-color:#17a2b8; color:white;">📡 Fetch Valve Status</button>
+          <button id="fetchValveStatus" class="valve-btn" style="background-color:#63a5d1; color:white;">📡 Fetch Valve Status</button>
         </div>
 
         <!-- حالة الصمام -->
@@ -95,7 +96,7 @@
     let userRole = null;
     const token = localStorage.getItem("authToken");
     const userData = localStorage.getItem("user");
-    const espIP = "192.168.100.109";
+    const espIP = "192.168.14.109";
 
     // التحقق من تسجيل الدخول
     if (!token || !userData) {
@@ -125,8 +126,8 @@
         hideControls();
       }
       loadRooms();
-      loadAllValveStatuses();
-      renderNotifications();
+      loadAllValveStatuses(); 
+    renderNotifications(); 
     }
 
     function hideControls() {
@@ -311,56 +312,66 @@ document.getElementById("submitSchedules").addEventListener("click", submitSched
   }
 
 async function submitSchedules() {
-    const roomId = document.getElementById("roomSelect").value;
-    if (!roomId) return alert("يرجى اختيار الغرفة");
+  const roomId = document.getElementById("roomSelect").value;
+  if (!roomId) return alert("يرجى اختيار الغرفة");
 
-    const startTimes = document.querySelectorAll(".startTime");
-    const endTimes = document.querySelectorAll(".endTime");
-    const dripCounts = document.querySelectorAll(".dripCount");
-    const dripIntervals = document.querySelectorAll(".dripInterval");
+  const startTimes = document.querySelectorAll(".startTime");
+  const endTimes = document.querySelectorAll(".endTime");
+  const dripCounts = document.querySelectorAll(".dripCount");
+  const dripIntervals = document.querySelectorAll(".dripInterval");
 
-    const schedules = [];
+  const schedules = [];
 
-    for (let i = 0; i < startTimes.length; i++) {
-      const start = startTimes[i].value;
-      const end = endTimes[i].value;
-      const drips = parseInt(dripCounts[i].value);
-      const interval = parseInt(dripIntervals[i].value);
+  for (let i = 0; i < startTimes.length; i++) {
+    const start = startTimes[i].value;
+    const end = endTimes[i].value;
+    const drips = parseInt(dripCounts[i].value);
+    const interval = parseInt(dripIntervals[i].value);
 
-      if (!start || !end || !drips || !interval) {
-        return alert("يرجى تعبئة كل البيانات");
-      }
-
-      schedules.push({
-        start,
-        end,
-        drip_count: drips,
-        drip_interval: interval
-      });
+    if (!start || !end || !drips || !interval) {
+      return alert("يرجى تعبئة كل البيانات");
     }
 
-    try {
-      const res = await fetch("/api/valve_status/schedule-multiple", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ room_id: roomId, schedules })
-      });
+    // ✅ تحقق: هل drips × interval ≤ طول الفترة؟
+    const startMin = parseInt(start.substring(0, 2)) * 60 + parseInt(start.substring(3, 5));
+    const endMin = parseInt(end.substring(0, 2)) * 60 + parseInt(end.substring(3, 5));
+    const durationInSeconds = (endMin - startMin) * 60;
+    const totalNeeded = drips * interval;
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "فشل في إرسال الجدولة");
-      }
-
-      alert("✅ تم حفظ كل البيانات بنجاح");
-      await fetchValveStatus(); // تحديث الحالة في الواجهة
-    } catch (err) {
-      console.error(err);
-      alert("❌ فشل في الحفظ");
+    if (totalNeeded > durationInSeconds) {
+      return alert(`⚠️ الفترة غير كافية. تحتاج إلى على الأقل ${(totalNeeded / 60).toFixed(1)} دقيقة`);
     }
+
+    schedules.push({
+      start,
+      end,
+      drip_count: drips,
+      drip_interval: interval
+    });
   }
+
+  try {
+    const res = await fetch("/api/valve_status/schedule-multiple", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ room_id: roomId, schedules })
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "فشل في إرسال الجدولة");
+    }
+
+    alert("✅ تم حفظ كل البيانات بنجاح");
+    await fetchValveStatus(); // تحديث الحالة في الواجهة
+  } catch (err) {
+    console.error(err);
+    alert("❌ فشل في الحفظ");
+  }
+}
     // وظائف الإشعارات
     function addNotification(msg) {
       const list = document.getElementById("notificationsList");
@@ -380,11 +391,30 @@ async function submitSchedules() {
     function clearNotifications() {
       document.getElementById("notificationsList").innerHTML = "";
     }
+   async function renderNotifications() {
+  try {
+    const res = await fetch("/api/notifications", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
 
-    function renderNotifications() {
-      // يمكن إضافة منطق لتحميل الإشعارات المحفوظة
-    }
+    console.log("🔁 جلب الإشعارات:", data.length); // للتأكيد
 
+    const list = document.getElementById("notificationsList");
+    list.innerHTML = "";
+
+    data.forEach(n => {
+      const item = document.createElement("li");
+      item.textContent = `[${new Date(n.created_at).toLocaleTimeString()}] ${n.message}`;
+      list.appendChild(item);
+    });
+
+    if (data.length > 0) document.getElementById("notifBadge").classList.remove("hidden");
+
+  } catch (e) {
+    console.error("🚨 Error fetching notifications:", e);
+  }
+}
     // وظائف واجهة المستخدم
     function toggleNotificationPanel() {
       const panel = document.getElementById("notificationsPanel");

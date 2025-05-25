@@ -8,7 +8,7 @@ const { authenticateToken, checkRole } = require('../middlewares/auth');
 router.post(
   "/",
   authenticateToken,
-  checkRole(['admin', 'nurse']), 
+  checkRole(['admin']), 
   async (req, res) => {
     const client = await pool.connect();
     try {

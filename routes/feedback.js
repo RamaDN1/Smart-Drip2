@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const { body, validationResult } = require('express-validator');
-const {authenticateToken }= require('../middlewares/auth');
+const {authenticateToken , checkRole }= require('../middlewares/auth');
 
 // POST /api/feedback - Submit user feedback
 router.post('/',
@@ -10,7 +10,7 @@ router.post('/',
     [
         body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
         body('review').trim().notEmpty().withMessage('Review text is required')
-    ],
+    ],checkRole(['patients' ]),
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
