@@ -287,7 +287,7 @@
     // دالة لتحميل المواعيد الحديثة (آخر 7 مواعيد)
 async function loadRecentAppointments() {
   try {
-    const res = await fetch("/api/reviews/recent", {
+    const res = await fetch("/api/medical_report/recent", {
       headers: { 
         Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         'Content-Type': 'application/json'
@@ -324,7 +324,7 @@ async function loadRecentAppointments() {
 // دالة لتحميل جميع المواعيد (موجودة لديك بالفعل)
 async function loadAllAppointments() {
   try {
-    const res = await fetch("/api/reviews/all", {
+    const res = await fetch("/api/medical_report/all", {
       headers: { 
         Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         'Content-Type': 'application/json'
@@ -471,22 +471,22 @@ async function loadDashboardCounts() {
   try {
     const token = localStorage.getItem("authToken");
 
-    const [patientsRes, roomsRes, valvesRes, reviewsRes] = await Promise.all([
+    const [patientsRes, roomsRes, valvesRes, medical_reportRes] = await Promise.all([
       fetch("/api/patients", { headers: { Authorization: `Bearer ${token}` } }),
       fetch("/api/rooms", { headers: { Authorization: `Bearer ${token}` } }),
       fetch("/api/valve_status", { headers: { Authorization: `Bearer ${token}` } }),
-      fetch("/api/reviews/today", { headers: { Authorization: `Bearer ${token}` } })
+      fetch("/api/medical_report/today", { headers: { Authorization: `Bearer ${token}` } })
     ]);
 
     const patients = await patientsRes.json();
     const rooms = await roomsRes.json();
     const valves = await valvesRes.json();
-    const reviews = await reviewsRes.json();
+    const medical_report = await medical_reportRes.json();
 
     document.getElementById("totalPatients").textContent = patients.patients?.length || 0;
     document.getElementById("occupiedRooms").textContent = rooms.rooms?.filter(r => r.occupied)?.length || 0;
     document.getElementById("openValves").textContent = Array.isArray(valves) ? valves.filter(v => v.status === "open").length : 0;
-    document.getElementById("todayReviews").textContent = reviews.reviews?.length || 0;
+    document.getElementById("todayReviews").textContent = medical_report.medical_report?.length || 0;
 
   } catch (err) {
     console.error("Error loading dashboard counts:", err);

@@ -1,58 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Features</title>
-    <link rel="stylesheet" href="features.css">
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Features</title>
+  <link rel="stylesheet" href="features.css">
+  <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <img src="images/logo.jpeg"  width="150">
-    </header><br>
+  <header>
+    <img src="images/logo.jpeg" width="150">
+    <div id="userGreeting" style="position: absolute; right: 200px; font-weight: bold; color: #8d6fd2;"></div>
+  </header>
 
-    <div class="dashboard-container">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="logo">SmartFlow</div>
-        <ul class="sidebar-menu">
-          <li><a href="home.html"><i class='bx bx-home'></i> Home</a></li>
-          <li><a href="creat_entry.html"><i class='bx bx-plus'></i> Create Entry</a></li>
-          <li><a href="room.html"><i class='bx bx-bed'></i> Rooms</a></li>
-          <li><a href="valve&time.html"><i class='bx bx-cog'></i> Valve & Time</a></li>
-          <li class="active"><i class='bx bx-star'></i> Features</li>
-          <li><a href="reviwe.html"><i class='bx bx-message'></i> Rates</a></li>
-          <li><a href="help.html"><i class='bx bx-help-circle'></i> Help</a></li>
-          <li><a href="#" id="logoutBtn"><i class='bx bx-log-out'></i> Logout</a></li>
-        </ul>
-      </aside>
+  <!-- زر القائمة -->
+    <div class="toggle-menu-btn" id="menuButton" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
 
-    <!-- زر القائمة -->
-  <div class="toggle-menu-btn" id="menuButton" onclick="toggleMenu()">
-    <span></span>
-    <span></span>
-    <span></span>
+    <!-- القائمة الجانبية -->
+    <div class="sidebar-menu" id="sideMenu">
+      <a href="home.html">Home</a>
+      <a href="creat_entry.html">Creat Entry</a>
+      <a href="room.html">Rooms</a>
+      <a href="valve&time.html">Valve & Time</a>
+      <a href="Features.html">Features</a>
+      <a href="reviwe.html">Review</a>
+      <a href="#" id="logoutBtn">Logout</a>
+    </div>
+
+    <!-- الغطاء -->
+    <div class="menu-overlay" id="overlay" onclick="closeMenu()"></div>
+
+    <!-- Main Content -->
+    <main class="main-content" style="padding-top: 100px;">
+      <section class="cards" id="Features">
+        <h2 class="title">Advanced Features</h2>
+        <div class="content">
+          <div class="card">
+            <div class="icon">⚖️</div>
+            <div class="info">
+              <h3>Precision Weight Sensing</h3>
+              <p>High-precision sensors continuously monitor fluid weight with accuracy down to 0.1 grams for exact measurements.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="icon">🔄</div>
+            <div class="info">
+              <h3>Automatic Valve Control</h3>
+              <p>Smart valves automatically close when fluid reaches preset thresholds, preventing overflow.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="icon">📡</div>
+            <div class="info">
+              <h3>Real-Time Monitoring</h3>
+              <p>Live data transmission to hospital systems for continuous tracking and quick response.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="icon">📱</div>
+            <div class="info">
+              <h3>Web Site </h3>
+              <p>Monitor and control IV drips remotely using a user-friendly Web Site.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="icon">🔔</div>
+            <div class="info">
+              <h3>Smart Alerts & Notifications</h3>
+              <p>Instant alerts via SMS or app notifications when fluid levels are low or system intervention is needed.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="icon">🛡️</div>
+            <div class="info">
+              <h3>Safety Mechanisms</h3>
+              <p>Automatic emergency shutoff and leak detection for enhanced patient safety.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <!-- القائمة الجانبية -->
-  <div class="sidebar-menu" id="sideMenu">
-    <a href="home.html">Home</a>
-    <a href="creat_entry.html">Creat_Entry  </a>
-    <a href="room.html">Rooms</a>
-    <a href="valve&time.html">valve&time </a>
-    <a href="Features.html">Features</a>
-    <a href="reviwe.html">Review </a>
-    <a href="help.html">Help</a>
-  </div>
-
-  <!-- الغطاء -->
-  <div class="menu-overlay" id="overlay" onclick="closeMenu()"></div>
-
+  <!-- سكربت القائمة الجانبية -->
   <script>
     const menu = document.getElementById("sideMenu");
     const button = document.getElementById("menuButton");
     const overlay = document.getElementById("overlay");
+    // مثال: جلب بيانات المستخدم من localStorage
+const userData = localStorage.getItem("user");
+
+const user = JSON.parse(userData);
+document.getElementById('userGreeting').textContent = `👤Welcome, ${user.name} (${user.role})`;
 
     function toggleMenu() {
       menu.classList.toggle("open");
@@ -65,65 +108,18 @@
       button.classList.remove("open");
       overlay.classList.remove("active");
     }
+    const logoutBtn = document.getElementById('logoutBtn');
+
+  logoutBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+
+    // امسح بيانات المستخدم من localStorage أو sessionStorage
+    localStorage.removeItem('token'); // أو أي مفتاح مخزن
+    sessionStorage.clear();
+
+    // إعادة توجيه إلى صفحة تسجيل الدخول
+    window.location.href = 'login.html';
+  });
   </script>
-
-<!-- Main Content -->
-<main class="main-content">
-
-    <section class="cards" id="Features">
-        <h2 class="title">Advanced Features</h2>
-        <div class="content">
-            <div class="card">
-                <div class="icon">⚖️</div>
-                <div class="info">
-                  <h3>Precision Weight Sensing</h3>
-                  <p>High-precision sensors continuously monitor fluid weight with accuracy down to 0.1 grams for exact measurements.</p>
-                </div> 
-            </div>
-            <div class="card">
-                <div class="icon">🔄</div>
-                <div class="info">
-                  <h3> Automatic Valve Control</h3>
-                  <p>Smart valves automatically close when fluid reaches preset thresholds, preventing overflow</p>
-                </div> 
-            </div>
-            <div class="card">
-                <div class="icon">📡</div>
-                <div class="info">
-                    <h3>Real-Time Monitoring</h3>
-                    <p>Live data transmission to hospital systems for continuous tracking and quick response.</p>
-                </div> 
-            </div>
-            <div class="card">
-                <div class="icon">📱</div>
-                <div class="info">
-                    <h3>Mobile App Integration</h3>
-                    <p>Monitor and control IV drips remotely using a user-friendly mobile application.</p>
-                </div> 
-            </div>
-            <div class="card">
-                <div class="icon">🔔</div>
-                <div class="info">
-                    <h3>Smart Alerts & Notifications</h3>
-                    <p>Instant alerts via SMS or app notifications when fluid levels are low or system intervention is needed.</p>
-                </div> 
-            </div>
-            
-            <div class="card">
-                <div class="icon">🛡️</div>
-                <div class="info">
-                    <h3>Safety Mechanisms</h3>
-                    <p>Automatic emergency shutoff and leak detection for enhanced patient safety.</p>
-                </div> 
-            </div>
-        </div>
-        </div>
-        <br>
-    <br>
-    
-    </section>
-  </main>
-</div>
-    
 </body>
 </html>

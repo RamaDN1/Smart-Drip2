@@ -28,7 +28,6 @@ router.post('/', authenticateToken,  checkRole(['doctor', 'admin']),validateRevi
     const { patient_id, review_date, review_time, admission_reason } = req.body;
     const user_id = req.user.user_id;
 
-    // التأكد من أن المريض يخص المستخدم
     const patientExists = await client.query(
       'SELECT id, admission_reason FROM patients WHERE id = $1 AND user_id = $2',
       [patient_id, user_id]
@@ -42,12 +41,10 @@ router.post('/', authenticateToken,  checkRole(['doctor', 'admin']),validateRevi
       });
     }
 
-    // استخدام سبب الدخول من المريض إذا لم يتم تحديده
     const finalAdmissionReason = admission_reason || patientExists.rows[0].admission_reason || 'Not specified';
 
-    // منع الموعد المكرر
     const existingReview = await client.query(
-      `SELECT id FROM reviews 
+      `SELECT id FROM medical_report 
        WHERE patient_id = $1 AND review_date = $2 AND review_time = $3`,
       [patient_id, review_date, review_time]
     );
@@ -60,24 +57,22 @@ router.post('/', authenticateToken,  checkRole(['doctor', 'admin']),validateRevi
       });
     }
 
-    // إدخال الموعد مع سبب الدخول
     const result = await client.query(
-      `INSERT INTO reviews 
+      `INSERT INTO medical_report 
        (patient_id, review_date, review_time, user_id, admission_reason)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
       [patient_id, review_date, review_time, user_id, finalAdmissionReason]
     );
 
-    // تحديث سجل المريض مع تاريخ ووقت المراجعة بنفس القيم المدخلة
-  await client.query(
-    `UPDATE patients
-     SET review_date = $1,
-         review_time = $2,
-         review = $3
-     WHERE id = $4`,
-    [review_date, review_time, `${review_date} ${review_time}`, patient_id]
-  );
+    await client.query(
+      `UPDATE patients
+       SET review_date = $1,
+           review_time = $2,
+           review = $3
+       WHERE id = $4`,
+      [review_date, review_time, `${review_date} ${review_time}`, patient_id]
+    );
 
     await client.query('COMMIT');
 
@@ -113,13 +108,11 @@ router.post('/', authenticateToken,  checkRole(['doctor', 'admin']),validateRevi
   }
 });
 
-// ✅ الحصول على جميع المواعيد مع سبب الدخول
- // للحصول على جميع المواعيد (بدون فلترة)
 router.get('/all', authenticateToken, checkRole(['admin']), async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT r.*, p.name as patient_name, u.name as doctor_name
-      FROM reviews r
+      FROM medical_report r
       JOIN patients p ON r.patient_id = p.id
       JOIN users u ON r.user_id = u.id
       ORDER BY r.review_date DESC, r.review_time DESC
@@ -138,12 +131,11 @@ router.get('/all', authenticateToken, checkRole(['admin']), async (req, res) => 
   }
 });
 
-// للحصول على المواعيد الحديثة (آخر 7)
 router.get('/recent', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT r.*, p.name as patient_name, u.name as doctor_name
-      FROM reviews r
+      FROM medical_report r
       JOIN patients p ON r.patient_id = p.id
       JOIN users u ON r.user_id = u.id
       ORDER BY r.review_date DESC, r.review_time DESC
@@ -163,7 +155,6 @@ router.get('/recent', authenticateToken, async (req, res) => {
   }
 });
 
-// ✅ الحصول على مراجعات مريض معين مع تاريخ ووقت المراجعة
 router.get('/patient/:patient_id', authenticateToken, async (req, res) => {
   const { patient_id } = req.params;
   
@@ -177,7 +168,7 @@ router.get('/patient/:patient_id', authenticateToken, async (req, res) => {
           r.admission_reason,
           TO_CHAR(r.review_date, 'YYYY-MM-DD') as formatted_date,
           TO_CHAR(r.review_time, 'HH12:MI AM') as formatted_time
-       FROM reviews r
+       FROM medical_report r
        WHERE r.patient_id = $1
        ORDER BY r.review_date DESC, r.review_time DESC`,
       [patient_id]
@@ -198,87 +189,82 @@ router.get('/patient/:patient_id', authenticateToken, async (req, res) => {
   }
 });
 
-// ✅ تحديث موعد المراجعة
 router.put('/:id/update-time', authenticateToken, checkRole(['doctor', 'admin']), async (req, res) => {
-    const { id } = req.params;
-    const { review_date, review_time } = req.body;
-  
-    if (!id || !review_date || !review_time) {
-      return res.status(400).json({
-        success: false,
-        error: 'معرّف المراجعة وتاريخ ووقت المراجعة مطلوبة'
-      });
-    }
-  
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-  
-      // التحقق من أن المراجعة موجودة وتخص المستخدم
-      const reviewCheck = await client.query(
-        'SELECT patient_id FROM reviews WHERE id = $1 AND user_id = $2',
-        [id, req.user.user_id]
-      );
-  
-      if (reviewCheck.rows.length === 0) {
-        await client.query('ROLLBACK');
-        return res.status(404).json({
-          success: false,
-          error: 'المراجعة غير موجودة أو غير مسموح بالتعديل'
-        });
-      }
-  
-      const patient_id = reviewCheck.rows[0].patient_id;
-  
-      // تحديث تاريخ ووقت المراجعة
-      const result = await client.query(
-        `UPDATE reviews
-         SET review_date = $1,
-             review_time = $2,
-             updated_at = NOW()
-         WHERE id = $3
-         RETURNING *`,
-        [review_date, review_time, id]
-      );
-  
-      // تحديث سجل المريض بنفس القيم الجديدة
-      await client.query(
-        `UPDATE patients
-         SET review_date = $1,
-             review_time = $2,
-             review = $3
-         WHERE id = $4`,
-        [review_date, review_time, `${review_date} ${review_time}`, patient_id]
-      );
-  
-      await client.query('COMMIT');
-      
-      res.json({
-        success: true,
-        message: 'تم تحديث موعد المراجعة بنجاح',
-        data: result.rows[0]
-      });
-  
-    } catch (err) {
-      await client.query('ROLLBACK');
-      console.error('فشل في تحديث موعد المراجعة:', err);
-      res.status(500).json({
-        success: false,
-        error: 'فشل في تحديث موعد المراجعة',
-        details: process.env.NODE_ENV === 'development' ? err.message : undefined
-      });
-    } finally {
-      client.release();
-    }
-  });
+  const { id } = req.params;
+  const { review_date, review_time } = req.body;
 
-  // 🔢 جلب عدد مراجعات اليوم فقط
+  if (!id || !review_date || !review_time) {
+    return res.status(400).json({
+      success: false,
+      error: 'معرّف المراجعة وتاريخ ووقت المراجعة مطلوبة'
+    });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const reviewCheck = await client.query(
+      'SELECT patient_id FROM medical_report WHERE id = $1 AND user_id = $2',
+      [id, req.user.user_id]
+    );
+
+    if (reviewCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({
+        success: false,
+        error: 'المراجعة غير موجودة أو غير مسموح بالتعديل'
+      });
+    }
+
+    const patient_id = reviewCheck.rows[0].patient_id;
+
+    const result = await client.query(
+      `UPDATE medical_report
+       SET review_date = $1,
+           review_time = $2,
+           updated_at = NOW()
+       WHERE id = $3
+       RETURNING *`,
+      [review_date, review_time, id]
+    );
+
+    await client.query(
+      `UPDATE patients
+       SET review_date = $1,
+           review_time = $2,
+           review = $3
+       WHERE id = $4`,
+      [review_date, review_time, `${review_date} ${review_time}`, patient_id]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      message: 'تم تحديث موعد المراجعة بنجاح',
+      data: result.rows[0]
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('فشل في تحديث موعد المراجعة:', err);
+    res.status(500).json({
+      success: false,
+      error: 'فشل في تحديث موعد المراجعة',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  } finally {
+    client.release();
+  }
+});
+
 router.get('/today', authenticateToken, async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     const result = await pool.query(
       `SELECT r.*, p.name as patient_name, u.name as doctor_name
-       FROM reviews r
+       FROM medical_report r
        JOIN patients p ON r.patient_id = p.id
        JOIN users u ON r.user_id = u.id
        WHERE r.review_date = $1`,
@@ -297,5 +283,34 @@ router.get('/today', authenticateToken, async (req, res) => {
     });
   }
 });
+
+router.put('/update/:id', authenticateToken, checkRole(['doctor']), async (req, res) => {
+  const { id } = req.params;
+  const { doctor_notes } = req.body;
+
+  if (!doctor_notes) {
+    return res.status(400).json({
+      success: false,
+      error: 'ملاحظات الطبيب مطلوبة'
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      'UPDATE medical_report SET doctor_notes = $1 WHERE id = $2 RETURNING *',
+      [doctor_notes, id]
+    );
+
+    res.json({
+      success: true,
+      message: 'تم تحديث الملاحظات بنجاح',
+      report: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Error updating doctor notes:', err);
+    res.status(500).json({ success: false, error: 'فشل في تحديث الملاحظات' });
+  }
+});
+
 
 module.exports = router;

@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rooms</title>
     <link rel="stylesheet" href="room.css">
-    <!-- أيقونات Boxicons -->
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
             
 </head>
 <body>
     <header>
         <img src="images/logo.jpeg" width="150">
-        <span id="userGreeting" style="float: right ; margin: 10px; font-weight: bold;"></span>
+        <div id="userGreeting" style="position: absolute; right: 500px;font-weight: bold; color: #8d6fd2;"></div>
     </header>
 
  <!-- Main Content -->
@@ -36,26 +35,18 @@
      <!-- القائمة الجانبية -->
      <div class="side-menu" id="sideMenu">
         <a href="home.html">Home</a>
-        <a href="creat_entry.html">Creat_Entry</a>
+        <a href="creat_entry.html">Creat Entry</a>
         <a href="room.html">Rooms</a>
         <a href="valve&time.html">valve&time</a>
         <a href="Features.html">Features</a>
         <a href="reviwe.html">Rates</a>
-        <a href="help.html">Help</a>
         <a href="#" id="logoutBtn">Logout</a>
     </div>
 
     <!-- غطاء شفاف عند فتح القائمة -->
     <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
-    <script>
-        // بيانات الغرف (سيتم تحديثها من الخلفية)
-        let floors = [
-    { name: "First Floor", rooms: [{ id: 101, room_number: 101, occupied: true }] },
-    { name: "Second Floor", rooms: [{ id: 201, room_number: 201, occupied: false }] }
-];
-
-    
+    <script>  
         // جلب بيانات الغرف من الخلفية
         async function fetchRooms() {
     const loading = document.getElementById('loading');
@@ -127,46 +118,6 @@
         container.style.display = "block";
     }
 }
-
-
-function updateRoomsUI(rooms) {
-  const container = document.getElementById("floors-container");
-  container.innerHTML = "";
-  
-  // تنظيم الغرف حسب الطوابق
-  const floors = {};
-  rooms.forEach(room => {
-    if (!floors[room.floor]) {
-      floors[room.floor] = [];
-    }
-    floors[room.floor].push(room);
-  });
-  
-  // عرض الغرف لكل طابق
-  Object.entries(floors).forEach(([floorNumber, floorRooms]) => {
-    const floorDiv = document.createElement("div");
-    floorDiv.classList.add("floor");
-    floorDiv.innerHTML = `<h3>Floor ${floorNumber}</h3>`;
-    
-    floorRooms.forEach(room => {
-      const card = document.createElement("div");
-      card.classList.add("room-card", room.occupied ? "occupied" : "empty");
-      
-      card.innerHTML = `
-        <i class='bx bx-bed icon'></i>
-        <div class="room-id">${room.room_number}</div>
-        <div class="status">${room.occupied ? "Occupied" : "Available"}</div>
-        <div class="action">${room.occupied ? "View Details" : "Book Room"}</div>
-      `;
-      
-      card.onclick = () => showPatientInfo(room);
-      floorDiv.appendChild(card);
-    });
-    
-    container.appendChild(floorDiv);
-  });
-}
-
         // عرض الغرف
         function renderFloors() {
             let container = document.getElementById("floors-container");
@@ -275,7 +226,7 @@ let userRole = null;
             try {
                 const user = JSON.parse(userData);
                 userRole = user.role;
-                document.getElementById('userGreeting').textContent = `👤, ${user.name} (${user.role})`;
+                document.getElementById('userGreeting').textContent = `👤Welcome, ${user.name} (${user.role})`;
             } catch (e) {
                 console.error('Error parsing user data:', e);
             }

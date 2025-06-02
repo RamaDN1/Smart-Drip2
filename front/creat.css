@@ -93,6 +93,10 @@ header {
   border-radius: 10px;
   text-align: left;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-height: 80vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding-right: 15px;
 }
 
 .close {
@@ -225,21 +229,6 @@ th {
 #viewPatientsBtn:active {
   transform: scale(0.95);
 }
-/* أضف هذه الأنماط في قسم الـ CSS */
-.modal-content {
-  max-height: 80vh; /* تحديد ارتفاع أقصى للمحتوى */
-  overflow-y: auto; /* تفعيل التمرير الرأسي عند الحاجة */
-  scrollbar-width: thin; /* لعرض شريط تمرير أنيق */
-}
-
-/* التعديلات الجديدة تبدأ من هنا */
-.modal-content {
-  max-height: 80vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  padding-right: 15px;
-}
-
 /* تصميم شريط التمرير لمتصفحات Chrome, Safari */
 .modal-content::-webkit-scrollbar {
   width: 10px;

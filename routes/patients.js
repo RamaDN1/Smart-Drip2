@@ -29,7 +29,7 @@ const refreshTokenIfNeeded = async (req, res, next) => {
 };
 
 // 🔹 الحصول على جميع المرضى مع مراجعاتهم
-router.get('/patients-with-reviews', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
+router.get('/patients-with-medical_report', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
   try {
     const role = req.user.role;
     const userId = req.user.user_id;
@@ -53,7 +53,7 @@ router.get('/patients-with-reviews', authenticateToken, checkRole(['admin', 'doc
         TO_CHAR(r.review_date, 'YYYY-MM-DD') as formatted_review_date,
         TO_CHAR(r.review_time, 'HH24:MI') as formatted_review_time
       FROM patients p
-      LEFT JOIN reviews r ON p.id = r.patient_id
+      LEFT JOIN medical_report r ON p.id = r.patient_id
       ${role === 'admin' ? '' : 'WHERE p.user_id = $1'}
       ORDER BY p.name
     `, role === 'admin' ? [] : [userId]);

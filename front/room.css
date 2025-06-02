@@ -170,6 +170,8 @@ box-shadow: -3px 0 6px rgba(0, 0, 0, 0.2);
 transition: right 0.3s ease-in-out;
 z-index: 1000;
 padding-top: 60px;
+direction: ltr; 
+text-align: left; 
 }
 
 .side-menu.open {

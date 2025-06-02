@@ -14,7 +14,6 @@
         <nav class="navigation" id="navMenu">
             <a href="Features.html">Features</a>
             <a href="reviwe.html">Rates</a>
-            <a href="help.html">Help</a>
             <a href="Admin.html">Admin Dashboard</a>
             <a href="#" id="logoutBtn">Logout</a>
         </nav>
@@ -29,7 +28,7 @@
                 overflow with intelligent valve control.</h3>
             <br><br>
             <div class="menu-buttonss">
-                <button class="button green" onclick="goTo('creat_entry.html')">➕<br><br>Create Entry</button>
+                <button class="button green" onclick="goTo('creat_entry.html')">➕<br><br>New Patients</button>
                 <button class="button blue" onclick="goTo('room.html')">🏥<br><br>Rooms</button>
                 <button class="button red" onclick="goTo('valve&time.html')">🕒💉<br><br>Valve&Time</button>
             </div>
@@ -75,7 +74,7 @@
             }
 
             const user = JSON.parse(userData);
-            document.getElementById('userGreeting').textContent = `👤 ${user.name} (${user.role})`;
+            document.getElementById('userGreeting').textContent = `👤Welcome, ${user.name} (${user.role})`;
 
             // إظهار وإخفاء عناصر حسب الدور
             if (user.role !== 'admin') {

@@ -208,6 +208,8 @@ h1 {
   transition: right 0.3s ease-in-out;
   z-index: 1000;
   padding-top: 60px;
+  direction: ltr; 
+text-align: left; 
 }
 
 .sidebar-menu.open {
