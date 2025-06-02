@@ -81,6 +81,24 @@
                 const adminLink = document.querySelector("a[href='Admin.html']");
                 if (adminLink) adminLink.style.display = 'none';
             }
+
+             
+        if (user.role === 'Patient') {
+            const allowedPages = ['Features.html', 'reviwe.html'];
+
+            const navLinks = document.querySelectorAll('#navMenu a');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (!allowedPages.includes(href)) {
+                    link.style.display = 'none';
+                }
+            });
+
+            // إخفاء الأزرار الخاصة بالممرضين/الإداريين
+            const buttonsContainer = document.querySelector('.menu-buttonss');
+            if (buttonsContainer) buttonsContainer.style.display = 'none';
+        }
+
         });
 
         document.getElementById('logoutBtn').addEventListener('click', () => {

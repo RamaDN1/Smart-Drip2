@@ -1,163 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rates </title>
-    <link rel="stylesheet" href="reviwe.css">
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rates</title>
+  <link rel="stylesheet" href="reviwe.css">
+  <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <img src="images/logo.jpeg" width="150">
-        <div id="userGreeting" style="position: absolute; right: 150px; font-weight: bold; color: #9147d5;"></div>
-    </header>
+  <header>
+    <img src="images/logo.jpeg" width="150">
+    <div id="userGreeting" style="position: absolute; right: 150px; font-weight: bold; color: #9147d5;"></div>
+  </header>
 
-    <!-- زر القائمة -->
-    <div class="toggle-menu-btn" id="menuButton" onclick="toggleMenu()">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
+  <!-- زر القائمة -->
+  <div class="toggle-menu-btn" id="menuButton" onclick="toggleMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
 
-    <!-- القائمة الجانبية -->
-    <div class="sidebar-menu" id="sideMenu">
-        <a href="home.html">Home</a>
-        <a href="creat_entry.html">Creat Entry</a>
-        <a href="room.html">Rooms</a>
-        <a href="valve&time.html">valve&time</a>
-        <a href="Features.html">Features</a>
-        <a href="reviwe.html">Rates</a>
-        <a href="#" id="logoutBtn">Logout</a>
-    </div>
+  <!-- القائمة الجانبية -->
+  <div class="sidebar-menu" id="sideMenu">
+    <a href="home.html">Home</a>
+    <a href="creat_entry.html">Creat Entry</a>
+    <a href="room.html">Rooms</a>
+    <a href="valve&time.html">valve&time</a>
+    <a href="Features.html">Features</a>
+    <a href="reviwe.html">Rates</a>
+    <a href="#" id="logoutBtn">Logout</a>
+  </div>
 
-    <div class="menu-overlay" id="overlay" onclick="closeMenu()"></div>
+  <div class="menu-overlay" id="overlay" onclick="closeMenu()"></div>
 
-    <main class="main-content">
+  <main class="main-content">
     <section class="bodyy">
-        <div class="review-container">
-            <div class="review-box">
-                <h2>We Value Your Feedback 😊</h2>
-                <p>Your opinion helps us improve the infusion drip control system. Please rate and share your thoughts.</p>
+      <div class="review-container">
+        <div class="review-box">
+          <h2>We Value Your Feedback 😊</h2>
+          <p>Your opinion helps us improve the infusion drip control system. Please rate and share your thoughts.</p>
 
-                <div class="rating">
-                    <input type="radio" id="star5" name="rating" value="5">
-                    <label for="star5">★</label>
-                    <input type="radio" id="star4" name="rating" value="4">
-                    <label for="star4">★</label>
-                    <input type="radio" id="star3" name="rating" value="3">
-                    <label for="star3">★</label>
-                    <input type="radio" id="star2" name="rating" value="2">
-                    <label for="star2">★</label>
-                    <input type="radio" id="star1" name="rating" value="1">
-                    <label for="star1">★</label>
-                </div>
+          <div class="rating">
+            <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
+            <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+            <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+            <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+            <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+          </div>
 
-                <textarea id="review-text" placeholder="How can we improve our service?"></textarea>
-                <button class="submit-btn" onclick="submitReview()">Submit Feedback</button>
+          <textarea id="review-text" placeholder="How can we improve our service?"></textarea>
+          <button class="submit-btn" onclick="submitReview()">Submit Feedback</button>
 
-                <div id="thankYou" class="thank-you">
-                    Thank you for your valuable feedback! We appreciate your time.
-                </div>
-            </div>
+          <div id="thankYou" class="thank-you" style="display:none;">
+            Thank you for your valuable feedback! We appreciate your time.
+          </div>
         </div>
+      </div>
     </section>
-</main>
+  </main>
 
-    <script>
-        // التحقق من تسجيل الدخول وعرض الاسم والدور
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('authToken');
-            const userData = localStorage.getItem('user');
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('user');
 
-            if (!token || !userData) {
-                window.location.href = '/login.html';
-                return;
-            }
+      if (!token || !userData) {
+        window.location.href = '/login.html';
+        return;
+      }
 
-            const user = JSON.parse(userData);
+      const user = JSON.parse(userData);
 
-if (user.role !== 'Patient') {
-    alert("❌ هذه الصفحة مخصصة للمرضى فقط");
-    window.location.href = '/home.html'; // أو صفحة أخرى مناسبة
-    return;
-}
+      // عرض اسم المستخدم
+      document.getElementById('userGreeting').textContent = `👤Welcome, ${user.name} (${user.role})`;
 
-            document.getElementById('userGreeting').textContent = `👤Welcome, ${user.name} (${user.role})`;
+      // منع غير المرضى من الدخول
+      if (user.role.toLowerCase() !== 'patient') {
+        alert("❌ هذه الصفحة مخصصة للمرضى فقط");
+        window.location.href = '/home.html';
+        return;
+      }
+
+      // السماح فقط لصفحات معينة
+      const allowedPages = ['Features.html', 'reviwe.html' , 'home.html'];
+      const navLinks = document.querySelectorAll('#sideMenu a');
+
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (!allowedPages.includes(href) && href !== '#') {
+          link.style.display = 'none';
+        }
+      });
+
+      // زر تسجيل الخروج
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          window.location.href = '/login.html';
         });
-        // القائمة الجانبية
-        const menu = document.getElementById("sideMenu");
-        const button = document.getElementById("menuButton");
-        const overlay = document.getElementById("overlay");
+      }
+    });
 
-        function toggleMenu() {
-            menu.classList.toggle("open");
-            button.classList.toggle("open");
-            overlay.classList.toggle("active");
-        }
+    // القائمة الجانبية
+    const menu = document.getElementById("sideMenu");
+    const button = document.getElementById("menuButton");
+    const overlay = document.getElementById("overlay");
 
-        function closeMenu() {
-            menu.classList.remove("open");
-            button.classList.remove("open");
-            overlay.classList.remove("active");
-        }
+    function toggleMenu() {
+      menu.classList.toggle("open");
+      button.classList.toggle("open");
+      overlay.classList.toggle("active");
+    }
 
-        // تسجيل الخروج
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            window.location.href = '/login.html';
+    function closeMenu() {
+      menu.classList.remove("open");
+      button.classList.remove("open");
+      overlay.classList.remove("active");
+    }
+
+    // إرسال المراجعة
+    async function submitReview() {
+      const reviewText = document.getElementById('review-text').value;
+      const rating = document.querySelector('input[name="rating"]:checked');
+
+      if (!rating) {
+        alert("Please select a rating before submitting.");
+        return;
+      }
+
+      if (reviewText.trim() === "") {
+        alert("Please enter your feedback before submitting.");
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          },
+          body: JSON.stringify({
+            rating: rating.value,
+            review: reviewText
+          })
         });
 
-        // إرسال المراجعة
-        async function submitReview() {
-            const reviewText = document.getElementById('review-text').value;
-            const rating = document.querySelector('input[name="rating"]:checked');
-
-            if (!rating) {
-                alert("Please select a rating before submitting.");
-                return;
-            }
-
-            if (reviewText.trim() === "") {
-                alert("Please enter your feedback before submitting.");
-                return;
-            }
-
-            try {
-  const response = await fetch('/api/feedback', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-    },
-    body: JSON.stringify({
-      rating: rating.value,
-      review: reviewText
-    })
-  });
-
-  const data = await response.json();
-  if (!data.success) {
-    alert("Failed to submit feedback. Please try again.");
-    return;
-  }
-
-  // ✅ الآن نعرض رسالة الشكر بعد نجاح الطلب
-  document.getElementById('thankYou').style.display = 'block';
-  document.getElementById('review-text').value = "";
-  document.querySelectorAll('input[name="rating"]').forEach(star => star.checked = false);
-  setTimeout(() => {
-    document.getElementById('thankYou').style.display = 'none';
-  }, 3000);
-
-} catch (error) {
-  console.error('Error submitting feedback:', error);
-  alert('An error occurred while submitting feedback. Please try again.');
-}
-
+        const data = await response.json();
+        if (!data.success) {
+          alert("Failed to submit feedback. Please try again.");
+          return;
         }
-    </script>
+
+        document.getElementById('thankYou').style.display = 'block';
+        document.getElementById('review-text').value = "";
+        document.querySelectorAll('input[name="rating"]').forEach(star => star.checked = false);
+        setTimeout(() => {
+          document.getElementById('thankYou').style.display = 'none';
+        }, 3000);
+
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+        alert('An error occurred while submitting feedback. Please try again.');
+      }
+    }
+  </script>
 </body>
 </html>
-
