@@ -10,7 +10,7 @@ router.post('/',
     [
         body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
         body('review').trim().notEmpty().withMessage('Review text is required')
-    ],checkRole(['Patients' ]),
+    ],checkRole(['Patient' ]),
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {

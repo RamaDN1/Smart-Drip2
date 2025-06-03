@@ -224,6 +224,25 @@ app.get("/api/notifications", authenticateToken, async (req, res) => {
   }
 });
 
+app.get("/api/users", authenticateToken, checkRole(['admin']), async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT name, email, role
+      FROM users
+    `);
+
+    const users = result.rows.map(u => ({
+      username: u.name,
+      email: u.email,
+      role: u.role
+    }));
+
+    res.json({ users });
+  } catch (err) {
+    console.error("Error fetching users:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 // Catch-all route
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "front", "login.html"));
@@ -251,7 +270,7 @@ setInterval(async () => {
 
       if (currentTime >= start && currentTime < end) {
         try {
-          await axios.get(`http://192.168.100.109/api/open-valve?drips=${row.drip_count}&interval=${row.drip_interval_seconds}`);
+          await axios.get(`http://10.103.1.83/api/open-valve?drips=${row.drip_count}&interval=${row.drip_interval_seconds}`);
         } catch (espError) {
           console.error(`❌ فشل إرسال الأمر إلى ESP32: ${espError.message}`);
         }
@@ -269,7 +288,7 @@ setInterval(async () => {
 
       if (currentTime === end) {
         try {
-          await axios.get("http://192.168.100.109/api/close-valve");
+          await axios.get("http://10.103.1.83/api/close-valve");
         } catch (err) {
           console.error(`❌ فشل إرسال أمر الإغلاق إلى ESP32: ${err.message}`);
         }

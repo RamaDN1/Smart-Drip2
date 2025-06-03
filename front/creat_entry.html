@@ -208,18 +208,18 @@
   const reviewBtn = document.getElementById('reviewAppointmentBtn');
 
   if (user.role === 'doctor') {
-    // يمكنه عرض المرضى وإضافة مراجعة فقط
-    if (createBtn) createBtn.style.display = 'none';
-  } else if (user.role === 'nurse') {
-    if (createBtn) createBtn.style.display = 'none';
-    if (reviewBtn) reviewBtn.style.display = 'none';
-  } else if (user.role !== 'admin') {
-    // أدوار أخرى غير مصرح لها إطلاقاً
-    if (createBtn) createBtn.style.display = 'none';
-    if (viewBtn) viewBtn.style.display = 'none';
-    if (reviewBtn) reviewBtn.style.display = 'none';
-  }
-
+  if (createBtn) createBtn.style.display = 'none';
+} else if (user.role === 'nurse') {
+  if (createBtn) createBtn.style.display = 'none';
+  if (reviewBtn) reviewBtn.style.display = 'none';
+} else if (user.role === 'admin') {
+  if (reviewBtn) reviewBtn.style.display = 'none';  // إخفاء الزر للأدمن
+} else {
+  // أدوار أخرى غير مصرح لها إطلاقاً
+  if (createBtn) createBtn.style.display = 'none';
+  if (viewBtn) viewBtn.style.display = 'none';
+  if (reviewBtn) reviewBtn.style.display = 'none';
+}
       fetchAvailableRooms();
       
       // Add event listener for review button

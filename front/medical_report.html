@@ -96,41 +96,45 @@
 
     // دالة لتحديث ملاحظات الطبيب
     async function updateNotes(reviewId) {
-      console.log("معرف المراجعة المراد تحديثها:", reviewId);
+  const userRole = localStorage.getItem('userRole');
+  if (userRole === 'admin') {
+    alert("غير مسموح للأدمن تعديل الملاحظات.");
+    return;
+  }
 
-      if (!reviewId) {
-        alert('خطأ: لم يتم تحديد معرف المراجعة');
-        return;
-      }
+  if (!reviewId) {
+    alert('خطأ: لم يتم تحديد معرف المراجعة');
+    return;
+  }
 
-      const notes = document.getElementById(`doctorNotes-${reviewId}`).value;
+  const notes = document.getElementById(`doctorNotes-${reviewId}`).value;
 
-      if (!notes.trim()) {
-        alert('الرجاء إدخال ملاحظات الطبيب.');
-        return;
-      }
+  if (!notes.trim()) {
+    alert('الرجاء إدخال ملاحظات الطبيب.');
+    return;
+  }
 
-      try {
-        const response = await fetch(`/api/medical_report/update/${reviewId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-          },
-          body: JSON.stringify({ doctor_notes: notes })
-        });
+  try {
+    const response = await fetch(`/api/medical_report/update/${reviewId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      },
+      body: JSON.stringify({ doctor_notes: notes })
+    });
 
-        const data = await response.json();
-        if (response.ok) {
-          alert('تم تحديث الملاحظات بنجاح');
-        } else {
-          alert(`فشل في تحديث الملاحظات: ${data.error}`);
-        }
-      } catch (err) {
-        console.error('Error updating notes:', err);
-        alert('حدث خطأ أثناء تحديث الملاحظات');
-      }
+    const data = await response.json();
+    if (response.ok) {
+      alert('تم تحديث الملاحظات بنجاح');
+    } else {
+      alert(`فشل في تحديث الملاحظات: ${data.error}`);
     }
+  } catch (err) {
+    console.error('Error updating notes:', err);
+    alert('حدث خطأ أثناء تحديث الملاحظات');
+  }
+}
   </script>
 </body>
 </html>
