@@ -486,7 +486,7 @@ async function loadDashboardCounts() {
     document.getElementById("totalPatients").textContent = patients.patients?.length || 0;
     document.getElementById("occupiedRooms").textContent = rooms.rooms?.filter(r => r.occupied)?.length || 0;
     document.getElementById("openValves").textContent = Array.isArray(valves) ? valves.filter(v => v.status === "open").length : 0;
-    document.getElementById("todayReviews").textContent = medical_report.medical_report?.length || 0;
+    document.getElementById("todayReviews").textContent = medical_report.reviews?.length || 0;
 
   } catch (err) {
     console.error("Error loading dashboard counts:", err);

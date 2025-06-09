@@ -224,8 +224,13 @@ let userRole = null;
             }
             
             try {
-                const user = JSON.parse(userData);
-                userRole = user.role;
+          const user = JSON.parse(userData);
+                // ✅ إخفاء رابط valve&time إذا كان المستخدم admin (بدون استخدام id)
+              const valveLink = document.querySelector("a[href='valve&time.html']");
+              if (user.role === 'admin' && valveLink) {
+              valveLink.style.display = 'none';
+              }
+       userRole = user.role;
                 document.getElementById('userGreeting').textContent = `👤Welcome, ${user.name} (${user.role})`;
             } catch (e) {
                 console.error('Error parsing user data:', e);

@@ -134,6 +134,12 @@
         });
       }
 
+      // ✅ إخفاء رابط valve&time إذا كان المستخدم admin (بدون استخدام id)
+              const valveLink = document.querySelector("a[href='valve&time.html']");
+              if (user.role === 'admin' && valveLink) {
+              valveLink.style.display = 'none';
+              }
+
       // زر تسجيل الخروج
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) {

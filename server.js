@@ -100,7 +100,7 @@ app.post("/api/login", async (req, res) => {
       {
         user_id: user.rows[0].id,
         email: user.rows[0].email,
-        role: user.rows[0].role || "doctor",
+        role: user.rows[0].role ,
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h", algorithm: "HS256" }
@@ -141,7 +141,7 @@ app.post("/api/register", async (req, res) => {
       return res.status(400).json({
         message: "كلمة المرور يجب أن تكون 8 خانات على الأقل (أحرف أو أرقام أو رموز)",
       });
-    }
+    } 
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const newUser = await pool.query(

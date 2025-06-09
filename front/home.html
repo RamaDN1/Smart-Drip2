@@ -30,7 +30,8 @@
             <div class="menu-buttonss">
                 <button class="button green" onclick="goTo('creat_entry.html')">➕<br><br>New Patients</button>
                 <button class="button blue" onclick="goTo('room.html')">🏥<br><br>Rooms</button>
-                <button class="button red" onclick="goTo('valve&time.html')">🕒💉<br><br>Valve&Time</button>
+                <button id="valveBtn" class="button red" onclick="goTo('valve&time.html')">🕒💉<br><br>Valve&Time</button>
+
             </div>
             <br>
         </div>
@@ -65,69 +66,72 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('authToken');
-            const userData = localStorage.getItem('user');
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('user');
 
-            if (!token || !userData) {
-                window.location.href = '/login.html';
-                return;
-            }
+    if (!token || !userData) {
+        window.location.href = '/login.html';
+        return;
+    }
 
-            const user = JSON.parse(userData);
-            document.getElementById('userGreeting').textContent = `👤Welcome, ${user.name} (${user.role})`;
+    const user = JSON.parse(userData);
+    document.getElementById('userGreeting').textContent = `👤Welcome, ${user.name} (${user.role})`;
 
-            // إظهار وإخفاء عناصر حسب الدور
-            if (user.role !== 'admin') {
-                const adminLink = document.querySelector("a[href='Admin.html']");
-                if (adminLink) adminLink.style.display = 'none';
-            }
+    // إظهار وإخفاء عناصر حسب الدور
+    if (user.role !== 'admin') {
+        const adminLink = document.querySelector("a[href='Admin.html']");
+        if (adminLink) adminLink.style.display = 'none';
+    }
 
-             
-        if (user.role === 'Patient') {
-            const allowedPages = ['Features.html', 'reviwe.html'];
-
-            const navLinks = document.querySelectorAll('#navMenu a');
-            navLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (!allowedPages.includes(href)) {
-                    link.style.display = 'none';
-                }
-            });
-
-            // إخفاء الأزرار الخاصة بالممرضين/الإداريين
-            const buttonsContainer = document.querySelector('.menu-buttonss');
-            if (buttonsContainer) buttonsContainer.style.display = 'none';
-        }
-
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            window.location.href = '/login.html';
-        });
-
-        function goTo(page) {
-            const token = localStorage.getItem('authToken');
-            if (!token) {
-                window.location.href = '/login.html';
-                return;
-            }
-            window.location.href = page;
-        }
-
-        function toggleMenu() {
-            const nav = document.getElementById("navMenu");
-            nav.classList.toggle("show");
-        }
-
-        window.addEventListener("click", function(e) {
-            const nav = document.getElementById("navMenu");
-            const menuIcon = document.querySelector(".menu-icon");
-            if (!nav.contains(e.target) && !menuIcon.contains(e.target)) {
-                nav.classList.remove("show");
+    if (user.role === 'Patient') {
+        const allowedPages = ['Features.html', 'reviwe.html','#'];
+        const navLinks = document.querySelectorAll('#navMenu a');
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (!allowedPages.includes(href)) {
+                link.style.display = 'none';
             }
         });
+
+        const buttonsContainer = document.querySelector('.menu-buttonss');
+        if (buttonsContainer) buttonsContainer.style.display = 'none';
+    }
+
+    // إخفاء زر Valve&Time للـ admin
+    if (user.role === 'admin') {
+        const valveBtn = document.getElementById('valveBtn');
+        if (valveBtn) valveBtn.style.display = 'none';
+    }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    window.location.href = '/login.html';
+});
+
+function goTo(page) {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = '/login.html';
+        return;
+    }
+    window.location.href = page;
+}
+
+function toggleMenu() {
+    const nav = document.getElementById("navMenu");
+    nav.classList.toggle("show");
+}
+
+window.addEventListener("click", function(e) {
+    const nav = document.getElementById("navMenu");
+    const menuIcon = document.querySelector(".menu-icon");
+    if (!nav.contains(e.target) && !menuIcon.contains(e.target)) {
+        nav.classList.remove("show");
+    }
+});
+
     </script>
 </body>
 </html>

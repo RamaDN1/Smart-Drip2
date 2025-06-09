@@ -18,12 +18,12 @@
         <input type="email" name="email" placeholder="Email" required />
         <input type="password" name="password" placeholder="Password" required />
           <!-- Role Dropdown -->
-<select name="role" id="role" required style="width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc;">
-<option value="" disabled selected>Select Role</option>
-<option value="doctor">Doctor</option>
-<option value="nurse">Nurse</option>
-<option value="Patient">Patient</option>
-<option value="admin">Admin</option>
+         <select name="role" id="role" required style="width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc;">
+        <option value="" disabled selected>Select Role</option>
+        <option value="doctor">Doctor</option>
+        <option value="nurse">Nurse</option>
+        <option value="Patient">Patient</option>
+        <option value="admin">Admin</option>
 </select>
 
         <button type="submit">Sign Up</button>
@@ -61,7 +61,7 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const container = document.getElementById('container');
+      const container = document.getElementById('container'); // id button 
       const registerBtn = document.getElementById('register');
       const loginBtn = document.getElementById('login');
 
@@ -80,16 +80,16 @@
       let isResetMode = false;
 
       forgetLink.addEventListener("click", (e) => {
-  e.preventDefault();
-  isResetMode = true;
-  passwordInput.style.display = 'none';
-  passwordInput.removeAttribute('required'); // ⬅️ أضف هذا السطر
-  newPasswordInput.style.display = '';
-  confirmPasswordInput.style.display = '';
-  forgetLink.style.display = 'none';
-  submitBtn.textContent = "Send New Password";
-  formTitle.textContent = "Reset Password";
-});
+            e.preventDefault();
+           isResetMode = true;
+           passwordInput.style.display = 'none';
+           passwordInput.removeAttribute('required'); // ⬅️ أضف هذا السطر
+           newPasswordInput.style.display = '';
+           confirmPasswordInput.style.display = '';
+           forgetLink.style.display = 'none';
+           submitBtn.textContent = "Send New Password";
+           formTitle.textContent = "Reset Password";
+      });
 
       signInForm.addEventListener('submit', async (e) => {
         e.preventDefault();

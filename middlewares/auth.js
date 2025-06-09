@@ -5,9 +5,9 @@ const bcrypt = require('bcryptjs');
 // توليد توكن JWT
 const generateToken = (userId, role) => {
   return jwt.sign(
-    { userId, role },
+    {    userId, role },
     process.env.JWT_SECRET,
-    { expiresIn: '8h' }
+    { expiresIn: '24h' }
   );
 };
 
@@ -28,10 +28,6 @@ const authenticateToken = (req, res, next) => {
       return res.status(403).json({ error: 'Invalid token' });
     }
     req.user = user;
-    // تعيين دور افتراضي إذا لم يكن موجوداً
-    if (!req.user.role) {
-      req.user.role = 'doctor';
-    }
     next();
   });
 };

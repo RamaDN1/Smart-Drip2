@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const { body, validationResult } = require('express-validator');
-const {authenticateToken , checkRole }= require('../middlewares/auth');
+const { authenticateToken, checkRole } = require('../middlewares/auth');
 
 // POST /api/feedback - Submit user feedback
 router.post('/',
@@ -10,7 +10,8 @@ router.post('/',
     [
         body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
         body('review').trim().notEmpty().withMessage('Review text is required')
-    ],checkRole(['Patient' ]),
+    ],
+    checkRole(['Patient']),
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -18,7 +19,8 @@ router.post('/',
         }
 
         const { rating, review } = req.body;
-        const user_id = req.user.id;
+        const user_id = req.user.user_id;
+
 
         try {
             const result = await pool.query(
@@ -41,28 +43,28 @@ router.post('/',
         }
     });
 
-    // API لجلب الفيدباك من قاعدة البيانات
-    router.get('/', authenticateToken, async (req, res) => {
-        try {
-          const result = await pool.query(
+// GET /api/feedback - Get all feedback with user names (if available)
+router.get('/', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query(
             `SELECT f.*, u.name as user_name
              FROM feedbacks f
-             JOIN users u ON f.user_id = u.id
+             LEFT JOIN users u ON f.user_id = u.id
              ORDER BY f.created_at DESC`
-          );
-      
-          res.json({
+        );
+
+        res.json({
             success: true,
             feedback: result.rows
-          });
-        } catch (err) {
-          console.error('Error fetching feedback:', err);
-          res.status(500).json({
+        });
+    } catch (err) {
+        console.error('Error fetching feedback:', err);
+        res.status(500).json({
             success: false,
             error: 'فشل في جلب بيانات الفيدباك',
             details: process.env.NODE_ENV === 'development' ? err.message : undefined
-          });
-        }
-      });
+        });
+    }
+});
 
 module.exports = router;
