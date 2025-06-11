@@ -3,7 +3,11 @@ const router = express.Router();
 const pool = require('../db');
 const { authenticateToken, checkRole } = require('../middlewares/auth');
 const jwt = require('jsonwebtoken');
+const { encrypt, decrypt } = require('../utils/encryption');
 
+function isEncrypted(text) {
+  return typeof text === 'string' && text.includes(':') && text.split(':')[0].length === 32;
+}
 // 🔹 تجديد التوكن تلقائياً عند انتهاء الصلاحية
 const refreshTokenIfNeeded = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -58,6 +62,17 @@ router.get('/patients-with-medical_report', authenticateToken, checkRole(['admin
       ORDER BY p.name
     `, role === 'admin' ? [] : [userId]);
 
+   result.rows.forEach(p => {
+      if (p.medical_history && isEncrypted(p.medical_history)) {
+        try {
+          p.medical_history = decrypt(p.medical_history);
+        } catch (e) {
+          console.error('❌ Decryption error (medical_history):', e.message);
+          p.medical_history = '[غير قابل للقراءة]';
+        }
+      }
+    });
+
     res.json({
       success: true,
       patients: result.rows
@@ -71,7 +86,6 @@ router.get('/patients-with-medical_report', authenticateToken, checkRole(['admin
     });
   }
 });
-
 
 // 🔹 الحصول على جميع المرضى (بحث + فلترة)
 router.get('/', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
@@ -101,7 +115,6 @@ router.get('/', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), asyn
     const params = [];
     let conditions = [];
 
-    // فقط نفلتر حسب user_id إذا لم يكن المستخدم أدمن
     if (role !== 'admin') {
       conditions.push(`p.user_id = $${params.length + 1}`);
       params.push(userId);
@@ -124,6 +137,18 @@ router.get('/', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), asyn
     query += ' ORDER BY p.name';
 
     const result = await pool.query(query, params);
+
+    result.rows.forEach(p => {
+      if (p.medical_history && isEncrypted(p.medical_history)) {
+        try {
+          p.medical_history = decrypt(p.medical_history);
+        } catch (e) {
+          console.error('❌ Decryption error (medical_history):', e.message);
+          p.medical_history = '[غير قابل للقراءة]';
+        }
+      }
+    });
+
     res.json({
       success: true,
       patients: result.rows
@@ -136,7 +161,6 @@ router.get('/', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), asyn
     });
   }
 });
-
 
 // 🔹 الحصول على مريض محدد
 router.get('/:id', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), async (req, res) => {
@@ -163,9 +187,19 @@ router.get('/:id', authenticateToken, checkRole(['admin', 'doctor', 'nurse']), a
       });
     }
 
+    const patient = result.rows[0];
+    if (patient.medical_history && isEncrypted(patient.medical_history)) {
+      try {
+        patient.medical_history = decrypt(patient.medical_history);
+      } catch (e) {
+        console.error('❌ Decryption error (medical_history):', e.message);
+        patient.medical_history = '[غير قابل للقراءة]';
+      }
+    }
+
     res.json({
       success: true,
-      patient: result.rows[0]
+      patient
     });
   } catch (err) {
     console.error('Error fetching patient details:', err);
@@ -187,11 +221,10 @@ router.post('/', authenticateToken, checkRole(['admin']), async (req, res) => {
       name, age, phone, emergency_phone, 
       medical_history, doctor_name, blood_group, 
       room_id, admission_date, insurance = 'No',
-      admission_reason 
+      admission_reason , user_id
     } = req.body;
 
-    // التحقق من الحقول المطلوبة
-    if (!name || !age || !doctor_name || !blood_group || !room_id || !admission_date) {
+    if (!name || !age || !doctor_name || !blood_group || !room_id || !admission_date || !user_id) {
       await client.query('ROLLBACK');
       return res.status(400).json({
         success: false,
@@ -200,7 +233,6 @@ router.post('/', authenticateToken, checkRole(['admin']), async (req, res) => {
       });
     }
 
-    // التحقق من توفر الغرفة
     const roomCheck = await client.query(
       'SELECT id FROM rooms WHERE id = $1 AND occupied = false FOR UPDATE',
       [room_id]
@@ -215,7 +247,6 @@ router.post('/', authenticateToken, checkRole(['admin']), async (req, res) => {
       });
     }
 
-    // إضافة المريض
     const patientResult = await client.query(
       `INSERT INTO patients 
        (name, age, phone, emergency_phone, medical_history,
@@ -228,18 +259,17 @@ router.post('/', authenticateToken, checkRole(['admin']), async (req, res) => {
         age, 
         phone || null, 
         emergency_phone || null,
-        medical_history || 'None',
+        encrypt(medical_history || 'None'),
         doctor_name,
         blood_group,
         room_id,
         insurance,
         new Date(admission_date).toISOString(),
         admission_reason || 'Not specified',
-        req.user.user_id
+        user_id
       ]
     );
 
-    // تحديث حالة الغرفة
     await client.query(
       'UPDATE rooms SET occupied = true WHERE id = $1',
       [room_id]
@@ -256,7 +286,7 @@ router.post('/', authenticateToken, checkRole(['admin']), async (req, res) => {
     await client.query('ROLLBACK');
     console.error('Error adding patient:', err);
 
-    if (err.code === '23505') { // Duplicate key
+    if (err.code === '23505') {
       return res.status(409).json({ 
         success: false,
         error: 'Patient already exists',
@@ -287,7 +317,6 @@ router.put('/:id', authenticateToken, checkRole([ 'doctor', 'nurse']), async (re
       room_id, admission_date, insurance
     } = req.body;
 
-    // التحقق من وجود المريض
     const patientCheck = await client.query(
       'SELECT id, room_id FROM patients WHERE id = $1 AND user_id = $2 FOR UPDATE',
       [id, req.user.user_id]
@@ -304,9 +333,7 @@ router.put('/:id', authenticateToken, checkRole([ 'doctor', 'nurse']), async (re
 
     const currentRoomId = patientCheck.rows[0].room_id;
 
-    // إذا تم تغيير الغرفة
     if (room_id && room_id !== currentRoomId) {
-      // تحرير الغرفة القديمة إذا لم يكن بها مرضى آخرين
       const patientsInOldRoom = await client.query(
         'SELECT id FROM patients WHERE room_id = $1 AND id != $2',
         [currentRoomId, id]
@@ -319,7 +346,6 @@ router.put('/:id', authenticateToken, checkRole([ 'doctor', 'nurse']), async (re
         );
       }
 
-      // حجز الغرفة الجديدة
       const newRoomCheck = await client.query(
         'SELECT id FROM rooms WHERE id = $1 AND occupied = false FOR UPDATE',
         [room_id]
@@ -340,7 +366,6 @@ router.put('/:id', authenticateToken, checkRole([ 'doctor', 'nurse']), async (re
       );
     }
 
-    // تحديث بيانات المريض
     const result = await client.query(
       `UPDATE patients 
        SET name = $1, age = $2, phone = $3, emergency_phone = $4,
@@ -354,7 +379,7 @@ router.put('/:id', authenticateToken, checkRole([ 'doctor', 'nurse']), async (re
         age, 
         phone || null, 
         emergency_phone || null,
-        medical_history || 'None',
+        encrypt(medical_history || 'None'),
         doctor_name,
         blood_group,
         insurance || 'No',

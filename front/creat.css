@@ -141,6 +141,13 @@ th, td {
 th {
   background-color: #f2f2f2;
 }
+/* توسيع عمود Review لعرض التاريخ والوقت بوضوح */
+th:nth-child(9),
+td:nth-child(9) {
+  min-width: 180px;
+  max-width: 250px;
+  word-wrap: break-word;
+}
 
 /* القائمة الجانبية وزر القائمة */
 .toggle-menu-btn {
@@ -263,3 +270,5 @@ h2 {
   text-decoration: underline;
   color: #2980b9;
 }
+
+

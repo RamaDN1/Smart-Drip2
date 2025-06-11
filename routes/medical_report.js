@@ -3,7 +3,11 @@ const router = express.Router();
 const pool = require('../db');
 const { authenticateToken, checkRole } = require('../middlewares/auth');
 const { body, validationResult } = require('express-validator');
+const { encrypt, decrypt } = require('../utils/encryption');
 
+function isEncrypted(text) {
+  return typeof text === 'string' && text.includes(':') && text.split(':')[0].length === 32;
+}
 // ✅ التحقق من صحة البيانات
 const validateReviewData = [
   body('patient_id').isInt().withMessage('معرف المريض يجب أن يكون رقماً صحيحاً'),
@@ -12,13 +16,10 @@ const validateReviewData = [
 ];
 
 // ✅ إنشاء موعد مراجعة جديد
-router.post('/', authenticateToken,  checkRole(['doctor', 'admin']),validateReviewData, async (req, res) => {
+router.post('/', authenticateToken, checkRole(['doctor', 'admin']), validateReviewData, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ 
-      success: false,
-      errors: errors.array() 
-    });
+    return res.status(400).json({ success: false, errors: errors.array() });
   }
 
   const client = await pool.connect();
@@ -35,10 +36,7 @@ router.post('/', authenticateToken,  checkRole(['doctor', 'admin']),validateRevi
 
     if (patientExists.rows.length === 0) {
       await client.query('ROLLBACK');
-      return res.status(404).json({
-        success: false,
-        error: 'المريض غير موجود أو غير مسموح بالوصول'
-      });
+      return res.status(404).json({ success: false, error: 'المريض غير موجود أو غير مسموح بالوصول' });
     }
 
     const finalAdmissionReason = admission_reason || patientExists.rows[0].admission_reason || 'Not specified';
@@ -51,10 +49,7 @@ router.post('/', authenticateToken,  checkRole(['doctor', 'admin']),validateRevi
 
     if (existingReview.rows.length > 0) {
       await client.query('ROLLBACK');
-      return res.status(409).json({
-        success: false,
-        error: 'هذا الموعد مسجل مسبقاً'
-      });
+      return res.status(409).json({ success: false, error: 'هذا الموعد مسجل مسبقاً' });
     }
 
     const result = await client.query(
@@ -157,7 +152,7 @@ router.get('/recent', authenticateToken, async (req, res) => {
 
 router.get('/patient/:patient_id', authenticateToken, async (req, res) => {
   const { patient_id } = req.params;
-  
+
   try {
     const result = await pool.query(
       `SELECT 
@@ -174,18 +169,22 @@ router.get('/patient/:patient_id', authenticateToken, async (req, res) => {
       [patient_id]
     );
 
-    res.json({
-      success: true,
-      history: result.rows
+     result.rows.forEach(r => {
+      if (r.doctor_notes && isEncrypted(r.doctor_notes)) {
+        try {
+          r.doctor_notes = decrypt(r.doctor_notes);
+        } catch (e) {
+          console.error('❌ Decryption error (doctor_notes):', e.message);
+          r.doctor_notes = '[غير قابل للقراءة]';
+        }
+      }
     });
+
+    res.json({ success: true, history: result.rows });
 
   } catch (err) {
     console.error('Error fetching review history:', err);
-    res.status(500).json({ 
-      success: false, 
-      error: 'فشل في جلب سجل المراجعات',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
+    res.status(500).json({ success: false, error: 'فشل في جلب سجل المراجعات', details: process.env.NODE_ENV === 'development' ? err.message : undefined });
   }
 });
 
@@ -289,16 +288,13 @@ router.put('/update/:id', authenticateToken, checkRole(['doctor']), async (req, 
   const { doctor_notes } = req.body;
 
   if (!doctor_notes) {
-    return res.status(400).json({
-      success: false,
-      error: 'ملاحظات الطبيب مطلوبة'
-    });
+    return res.status(400).json({ success: false, error: 'ملاحظات الطبيب مطلوبة' });
   }
 
   try {
     const result = await pool.query(
       'UPDATE medical_report SET doctor_notes = $1 WHERE id = $2 RETURNING *',
-      [doctor_notes, id]
+      [encrypt(doctor_notes), id]
     );
 
     res.json({
@@ -311,6 +307,5 @@ router.put('/update/:id', authenticateToken, checkRole(['doctor']), async (req, 
     res.status(500).json({ success: false, error: 'فشل في تحديث الملاحظات' });
   }
 });
-
 
 module.exports = router;
